@@ -2,6 +2,7 @@ package gost
 
 import (
 	"fmt"
+	"html-cer-gen/internal/models"
 	"log/slog"
 	"net/url"
 	"os"
@@ -11,29 +12,15 @@ import (
 	"strings"
 )
 
-type CertificateRequest struct {
-	CommonName            string // например: "server.example.com" или "user@example.com"
-	Organization          string // например: "My Company"
-	Country               string // 2 буквы, например: "RU"
-	Time                  string
-	UTC                   int
-	KeyType               string // "rsa2048" или "rsa4096"
-	CertType              string // "server" или "client"
-	CAName                string // имя УЦ → файлы: <CAName>.cer и <CAName>.key
-	AuthorityInfoAccess   string
-	CrlDistributionPoints string
-	Serial                int
-}
-
 type GostCertificateGenerator struct {
 	log *slog.Logger
-	CR  *CertificateRequest
+	CR  *models.CertRequest
 }
 
 func New(log *slog.Logger) *GostCertificateGenerator {
 	return &GostCertificateGenerator{
 		log: log,
-		CR:  &CertificateRequest{},
+		CR:  &models.CertRequest{},
 	}
 }
 
@@ -41,37 +28,26 @@ var CAfolder string = "./certs/CA"
 var OutputFolder string = "./certs/generated"
 
 // GenGostCertAndTrustCA генерирует и подписывает сертификат по ГОСТ с использованием OpenSSL
-func (gen *GostCertificateGenerator) GenCertAndTrustCA(
-	commonName string,
-	organization string,
-	country string,
-	timeLive string,
-	UTC int,
-	keyType string,
-	certType string,
-	caName string,
-	requestid string,
-	crlDistributionPoints string,
-	authorityInfoAccess string,
-	serial int,
-) error {
+func (gen *GostCertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRequest, requestid string) error {
 
 	requestFolder := filepath.Join(OutputFolder, requestid)
 	if err := os.MkdirAll(requestFolder, 0755); err != nil {
 		return fmt.Errorf("failed to mkdir for requestID: %w", err)
 	}
 
-	// Пути к файлам
-	keyFile := filepath.Join(requestFolder, commonName+".key")
-	csrFile := filepath.Join(requestFolder, commonName+".csr")
-	certFile := filepath.Join(requestFolder, commonName+".cer")
+	gen.CR = CertRequest
 
-	caDir := filepath.Join(CAfolder, caName)
-	caCertFile := filepath.Join(caDir, caName+".cer")
-	caKeyFile := filepath.Join(caDir, caName+".key")
+	// Пути к файлам
+	keyFile := filepath.Join(requestFolder, gen.CR.CommonName+".key")
+	csrFile := filepath.Join(requestFolder, gen.CR.CommonName+".csr")
+	certFile := filepath.Join(requestFolder, gen.CR.CommonName+".cer")
+
+	caDir := filepath.Join(CAfolder, gen.CR.CAName)
+	caCertFile := filepath.Join(caDir, gen.CR.CAName+".cer")
+	caKeyFile := filepath.Join(caDir, gen.CR.CAName+".key")
 
 	key := "gost2012_256"
-	switch keyType {
+	switch gen.CR.KeyType {
 	case "GOST2012512":
 		key = "gost2012_512"
 	}
@@ -88,7 +64,7 @@ func (gen *GostCertificateGenerator) GenCertAndTrustCA(
 	}
 
 	// 2. Создание CSR
-	subj := fmt.Sprintf("/C=%s/O=%s/CN=%s", strings.ToUpper(country), organization, commonName)
+	subj := fmt.Sprintf("/C=%s/O=%s/CN=%s", strings.ToUpper(gen.CR.Country), gen.CR.Organization, gen.CR.CommonName)
 	cmd2 := exec.Command("openssl", "req", "-new",
 		"-key", keyFile,
 		"-out", csrFile,
@@ -101,7 +77,7 @@ func (gen *GostCertificateGenerator) GenCertAndTrustCA(
 	// Подготовка времени
 	days := "365"
 
-	switch timeLive {
+	switch gen.CR.Time {
 	case "1year":
 		days = "365"
 	case "1day":
@@ -126,16 +102,16 @@ func (gen *GostCertificateGenerator) GenCertAndTrustCA(
 	extContent := `basicConstraints=CA:FALSE
 keyUsage=digitalSignature,keyEncipherment
 `
-	if certType == "server" {
-		extContent += fmt.Sprintf("extendedKeyUsage=serverAuth\nsubjectAltName=DNS:%s\n", commonName)
-	} else if certType == "client" {
+	if gen.CR.CertType == "server" {
+		extContent += fmt.Sprintf("extendedKeyUsage=serverAuth\nsubjectAltName=DNS:%s\n", gen.CR.CommonName)
+	} else if gen.CR.CertType == "client" {
 		extContent += "extendedKeyUsage=clientAuth\n"
-	} else if certType == "email" {
+	} else if gen.CR.CertType == "email" {
 		extContent += "extendedKeyUsage=emailProtection\n"
 	}
 
-	if crlDistributionPoints != "" && crlDistributionPoints != " " {
-		uris := strings.Split(crlDistributionPoints, ",")
+	if gen.CR.CrlDistributionPoints != "" && gen.CR.CrlDistributionPoints != " " {
+		uris := strings.Split(gen.CR.CrlDistributionPoints, ",")
 		var crlLines []string
 		for _, uri := range uris {
 			crlLines = append(crlLines, fmt.Sprintf("URI:%s", strings.TrimSpace(uri)))
@@ -143,9 +119,9 @@ keyUsage=digitalSignature,keyEncipherment
 		extContent += fmt.Sprintf("crlDistributionPoints=%s\n", strings.Join(crlLines, ","))
 	}
 
-	if authorityInfoAccess != "" {
+	if gen.CR.AuthorityInfoAccess != "" {
 		var aiaEntries []string
-		uris := strings.Split(authorityInfoAccess, ",")
+		uris := strings.Split(gen.CR.AuthorityInfoAccess, ",")
 		for _, part := range uris {
 			parts := strings.SplitN(part, ";", 2)
 			if len(parts) != 2 {
@@ -178,8 +154,8 @@ keyUsage=digitalSignature,keyEncipherment
 
 	var SERIALID string
 
-	if serial != 0 {
-		SERIALID = strconv.Itoa(serial)
+	if gen.CR.Serial != 0 {
+		SERIALID = strconv.Itoa(gen.CR.Serial)
 
 		cmd3 := exec.Command("openssl", "x509", "-req",
 			"-in", csrFile,

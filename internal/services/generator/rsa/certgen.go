@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"html-cer-gen/internal/models"
 	"log/slog"
 	"math/big"
 	"net"
@@ -28,23 +29,9 @@ var (
 	CAfolder     string = "./certs/CA"
 )
 
-type CertificateRequest struct {
-	CommonName            string // например: "server.example.com" или "user@example.com"
-	Organization          string // например: "My Company"
-	Country               string // 2 буквы, например: "RU"
-	Time                  string
-	UTC                   int
-	KeyType               string // "rsa2048" или "rsa4096"
-	CertType              string // "server" или "client"
-	CAName                string // имя УЦ → файлы: <CAName>.cer и <CAName>.key
-	AuthorityInfoAccess   string
-	CrlDistributionPoints string
-	Serial                int
-}
-
 type RSACertificateGenerator struct {
 	log *slog.Logger
-	CR  *CertificateRequest
+	CR  *models.CertRequest
 }
 
 type accessDescription struct {
@@ -57,25 +44,12 @@ type authorityInfoAccess []accessDescription
 func New(log *slog.Logger) *RSACertificateGenerator {
 	return &RSACertificateGenerator{
 		log: log,
-		CR:  &CertificateRequest{},
+		CR:  &models.CertRequest{},
 	}
 }
 
 // GenerateCertificate генерирует и подписывает сертификат на основе запроса
-func (gen *RSACertificateGenerator) GenCertAndTrustCA(
-	commonName string,
-	organization string,
-	country string,
-	timeLive string,
-	UTC int,
-	keyType string,
-	certType string,
-	caName string,
-	requestid string,
-	crlDistributionPoints string,
-	authorityInfoAccess string,
-	serial int,
-) error {
+func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRequest, requestid string) error {
 
 	var RequestFolder string = filepath.Join(OutputFolder, requestid)
 
@@ -89,19 +63,7 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(
 
 	}
 
-	gen.CR = &CertificateRequest{
-		CommonName:            commonName,
-		Organization:          organization,
-		Country:               country,
-		Time:                  timeLive,
-		UTC:                   UTC,
-		KeyType:               keyType,
-		CertType:              certType,
-		CAName:                caName,
-		CrlDistributionPoints: crlDistributionPoints,
-		AuthorityInfoAccess:   authorityInfoAccess,
-		Serial:                serial,
-	}
+	gen.CR = CertRequest
 
 	filepath.Join()
 
@@ -193,7 +155,7 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(
 	// === 4. Создание шаблона сертификата ===
 	if gen.CR.Serial != 0 {
 		bigInt := new(big.Int)
-		SERIALID = bigInt.SetInt64(int64(serial))
+		SERIALID = bigInt.SetInt64(int64(gen.CR.Serial))
 	} else {
 		SERIALID, err = rand.Int(rand.Reader, new(big.Int).SetInt64(1<<62))
 		if err != nil {
@@ -233,7 +195,7 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(
 		}
 	}
 
-	if crlDistributionPoints != " " {
+	if gen.CR.CrlDistributionPoints != " " {
 		CrlDistPoints := strings.Split(gen.CR.CrlDistributionPoints, ",")
 
 		template.CRLDistributionPoints = append(template.CRLDistributionPoints, CrlDistPoints...)

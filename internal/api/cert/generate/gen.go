@@ -67,19 +67,7 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 			name := fmt.Sprintf("%s_%d", Req.CommonName, i+1)
 
-			if err := generator.GenCertAndTrustCA(
-				name,
-				Req.Organization,
-				Req.Country,
-				Req.Time,
-				Req.UTC,
-				Req.KeyType,
-				Req.CertType,
-				Req.CAName,
-				reqID,
-				Req.CrlDistributionPoints,
-				Req.AuthorityInfoAccess,
-				Req.Serial); err != nil {
+			if err := generator.GenCertAndTrustCA(Req, reqID); err != nil {
 				logHandler.Error("failed to generate cert and trust CA", "err", err.Error(), "Data", Req)
 
 				c.JSON(http.StatusInternalServerError, err.Error())
