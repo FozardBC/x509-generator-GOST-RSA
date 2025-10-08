@@ -67,6 +67,9 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 			name := fmt.Sprintf("%s_%d", Req.CommonName, i+1)
 
+			temp := Req.CommonName
+			Req.CommonName = name
+
 			if err := generator.GenCertAndTrustCA(Req, reqID); err != nil {
 				logHandler.Error("failed to generate cert and trust CA", "err", err.Error(), "Data", Req)
 
@@ -74,6 +77,9 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 				return
 			}
+
+			Req.CommonName = temp
+
 			_ = i
 		}
 
