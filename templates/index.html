@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>АМИГенератор сертификатов</title>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- Стили для спиннера и множественного выбора -->
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #spinner {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        #spinner div {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Стили для множественного выбора */
+        .multiselect-container {
+            position: relative;
+        }
+        
+        .multiselect-display {
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: white;
+            cursor: pointer;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .multiselect-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        
+        .multiselect-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .multiselect-option:hover {
+            background: #f5f5f5;
+        }
+        
+        .multiselect-option.selected {
+            background: #e3f2fd;
+        }
+        
+        .selected-tag {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .selected-tag .remove {
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .placeholder {
+            color: #999;
+        }
+        
+        .multiselect-open .multiselect-dropdown {
+            display: block;
+        }
+        
+        .multiselect-open .multiselect-display {
+            border-radius: 4px 4px 0 0;
+        }
+        
+        /* Стили для основного layout */
+        .main-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .form-container {
+            flex: 1;
+        }
+        
+        .download-container {
+            flex: 0 0 300px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        
+        .download-container h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .cert-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            margin-bottom: 15px;
+        }
+        
+        .cert-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .cert-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .cert-item.selected {
+            background: #e3f2fd;
+            border-left: 3px solid #3498db;
+        }
+        
+        .cert-item:last-child {
+            border-bottom: none;
+        }
+        
+        .cert-name {
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .cert-details {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .download-btn {
+            width: 100%;
+            padding: 12px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        .download-btn:hover {
+            background: #219a52;
+        }
+        
+        .download-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .no-certs {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Левая часть - форма генерации -->
+        <div class="container">
+            <div class="signature">
+                <img src="/static/logo.png" alt="Электронная подпись" style="margin-bottom: 20px; margin-left: 40px;">
+            </div>
+            
+            <form action="/generate" method="post">
+                <div class="form-group">
+                    <label for="commonName">Common Name (имя):</label>
+                    <input type="text" id="commonName" name="commonName" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="organization">Organization:</label>
+                    <input type="text" id="organization" name="organization" value="My Company">
+                </div>
+                
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <input type="text" id="country" name="country" value="RU" maxlength="2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="liveTime">Срок действия:</label>
+                    <select id="liveTime" name="liveTime">
+                        <option value="1year">Срок жизни 1 год</option>
+                        <option value="1day">Срок жизни 1 день</option>
+                        <option value="future1m">Срок жизни наступит через месяц</option>
+                        <option value="future1d">Срок жизни наступит завтра</option>
+                        <option value="future1h">Срок жизни наступит через час</option>
+                        <option value="overdue">Просроченный</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                   
+                    <!-- Чекбокс и текст в одной строке -->
+                    <div class="checkbox-inline">
+                        <input type="checkbox" id="utcCheckbox" name="utc" value=1 checked>
+                        <label for="utcCheckbox">Время по UTC (GMT)</label>
+                        <span class="help-icon" title="Если не выбрано, то будет использовано время по МСК" style="margin-top: 0;margin-left: 0;">? </span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keyType">Тип ключа:</label>
+                    <select id="keyType" name="keyType">
+                        <option value="rsa2048">RSA 2048</option>
+                        <option value="rsa4096">RSA 4096</option>
+                        <option value="GOST2012256">GOST2012(256)</option>
+                        <option value="GOST2012512">GOST2012(512)</option>
+                    </select>
+                    <small class="form-text text-muted" style="color: #e74c3c;text-align: center; font-weight: bold; font-size: 0.875em; margin-top: 4px; display: block;">
+        ⚠️ В связи с особенностями openssl gost engine - тип ключа RSA не поддерживает подпись ГОСТовым УЦ, и наоборот.
+    </small>
+                </div>
+                
+                <!-- Модифицированное поле для множественного выбора типов сертификатов -->
+                <div class="form-group">
+                    <label>Тип сертификата:</label>
+                    <div class="multiselect-container" id="certTypeMultiselect">
+                        <div class="multiselect-display" id="certTypeDisplay">
+                            <span class="placeholder">Выберите типы сертификатов...</span>
+                        </div>
+                        <div class="multiselect-dropdown" id="certTypeDropdown">
+                            <div class="multiselect-option" data-value="client">Клиентский</div>
+                            <div class="multiselect-option" data-value="server">Серверный</div>
+                            <div class="multiselect-option" data-value="email">Email</div>
+                            <div class="multiselect-option" data-value="empty">Пустое</div>
+                        </div>
+                        <!-- Скрытое поле для отправки данных -->
+                        <input type="hidden" id="certType" name="certType" value="">
+                    </div>
+                </div>
+
+                <!-- <div class="form-group">
+                    <label for="caName">Удостоверяющий центр:</label>
+                    <select id="caName" name="caName">
+                        <option value="org1-2048">org1 (RSA 2048)</option>
+                        <option value="org1-4096">org1 (RSA 4096)</option>
+                    </select>
+                </div> -->
+
+                <div class="form-group">
+                    <label for="caName">Удостоверяющий центр:</label>
+                    <div style="align-items: center; gap: 8px;">
+                        <select id="caName" name="caName">
+                            <option value="">Загрузка...</option>
+                        </select>
+                        <button type="button" id="refreshCA" title="Обновить список УЦ" style="background-color: #6d39e7; margin-top: 14px;">
+                            🔄
+                          
+                        </button>
+                    </div>
+                </div>  
+
+                <div class="form-group">
+                    <label for="count">Количество сертификатов</label>
+                    <input type="number" id="count" name="count" value="1" min="1" max="100">
+                </div>
+
+                <div class="form-group">
+    <button type="button" id="toggleAdvanced">Расширенные настройки</button>
+                </div>
+
+                <!-- Скрытый блок с расширенными полями -->
+                <div id="advanced-settings" style="display: none; margin-top: 20px; margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
+                    <h3>Дополнительные параметры</h3>
+
+                    <div class="form-group">
+                        <label for="crlDistributionPoints">CRL Distribution Points:</label>
+                        <input type="text" id="crlDistributionPoints" name="crlDistributionPoints" value=" " required title="Пример: http://192.168.28.3/ocsp,http://192.168.12.38/org.crl" > 
+                        <span class="help-icon" title="Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ">?</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="authorityInfoAccess">Authority Info Access:</label>
+                        <input type="text" id="crlDistributionPoints" name="authorityInfoAccess" value=" " required title="Пример: OCSP;http://192.168.28.4,CAIssuers;http://192.168.28.2">
+                        <span class="help-icon" title="Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ">?</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="serial">Serial Number:</label>
+                        <input type="number" id="serial" name="serial" value=0 required title="1234">
+                        <span class="help-icon" title="Если оставить 0 - сгерерирует сам">?</span>
+                    </div>
+                    
+                </div>
+
+                <button type="submit">Сгенерировать сертификат</button>
+            </form>
+            
+            {{if .Error}}
+            <div class="error">{{.Error}}</div>
+            {{end}}
+        </div>
+
+        <!-- Правая часть - скачивание сертификатов -->
+
+       
+       <div class="containerDOWNLOAD">
+    <h2>Скачать сертификаты УЦ</h2>
+
+    <div class="form-group">
+        <label for="downloadCaName">Удостоверяющий центр:</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <select class="select" id="downloadCaName" name="caName">
+                <option value="">Загрузка...</option>
+            </select>
+            <button type="button" id="refreshDownloadCA" title="Обновить список УЦ" style="background-color: #6d39e7;width: 50px; margin-top: 20px;">🔄</button>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <form id="downloadForm" action="/download/cert" method="get" style="display: inline;">
+            <input type="hidden" id="downloadFormCaInput" name="caName" />
+            <button type="submit" class="button" style="margin-bottom: 0;">Скачать</button>
+        </form>
+        
+        <!-- Кнопка открытия модального окна -->
+        <button type="button" id="openUploadModal" class="button" style="background: #6d39e7; margin-bottom: 0;">Загрузить УЦ</button>
+    </div>
+</div>
+
+<!-- Модальное окно для загрузки CA -->
+<div id="uploadModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Загрузка Удостоверяющего Центра</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Блок для отображения ошибок -->
+            <div id="uploadError" class="error-message" style="display: none;"></div>
+            
+            <form id="uploadCAForm" action="/upload/ca" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="certFile">Сертификат (.cer/.crt):</label>
+                    <input type="file" id="certFile" name="certFile" accept=".cer,.crt" required>
+                    <div id="certFileStatus" class="file-status"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="keyFile">Приватный ключ (.key):</label>
+                    <input type="file" id="keyFile" name="keyFile" accept=".key" required>
+                    <div id="keyFileStatus" class="file-status"></div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="caName">Имя УЦ:</label>
+                    <input type="text" id="caName" name="caName" placeholder="Введите имя удостоверяющего центра" required>
+                    <small class="form-text text-muted" style="color: #e74c3c;text-align: center; font-weight: bold; font-size: 0.875em; margin-top: 4px; display: block;">
+        ⚠️ Имя сертификата УЦ должно иметь вид <br>
+        [АЛГОРИТМ-НАЗВАНИЕ-ДЛИНАКЛЮЧА]<br>
+        Например "rsa-org1-2048".
+    </small>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancelUpload" class="btn btn-secondary">Отмена</button>
+                    <button type="submit" id="submitUpload" class="btn" disabled>Загрузить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+     
+    </div>
+
+    <!-- Спиннер (анимация загрузки) -->
+    <div id="spinner">
+        <div></div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+    .modal {
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .modal-header h3 {
+        margin: 0;
+        color: #333;
+    }
+
+    .close {
+        font-size: 24px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #999;
+    }
+
+    .close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .file-status {
+        font-size: 12px;
+        margin-top: 5px;
+        min-height: 15px;
+    }
+
+    .file-status.success {
+        color: #27ae60;
+    }
+
+    .file-status.error {
+        color: #e74c3c;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #7f8c8d;
+    }
+
+    .btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        color: white;
+    }
+
+    #submitUpload {
+        background: #27ae60;
+        color: white;
+    }
+
+    #submitUpload:not(:disabled):hover {
+        background: #219a52;
+    }
+
+    input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        margin-top: 5px;
+        box-sizing: border-box;
+    }
+</style>
+
+<script>
+    // Элементы модального окна
+    const uploadModal = document.getElementById('uploadModal');
+    const openUploadModalBtn = document.getElementById('openUploadModal');
+    const closeModalBtn = document.querySelector('.close');
+    const cancelUploadBtn = document.getElementById('cancelUpload');
+    const uploadCAForm = document.getElementById('uploadCAForm');
+    const submitUploadBtn = document.getElementById('submitUpload');
+    const certFileInput = document.getElementById('certFile');
+    const keyFileInput = document.getElementById('keyFile');
+    const certFileStatus = document.getElementById('certFileStatus');
+    const keyFileStatus = document.getElementById('keyFileStatus');
+    const caNameInput = document.getElementById('caName');
+    const uploadError = document.getElementById('uploadError');
+
+    // Функция для показа ошибки
+    function showError(message) {
+        uploadError.textContent = message;
+        uploadError.style.display = 'block';
+    }
+
+    // Функция для скрытия ошибки
+    function hideError() {
+        uploadError.style.display = 'none';
+    }
+
+    // Открытие модального окна
+    openUploadModalBtn.addEventListener('click', function() {
+        uploadModal.style.display = 'flex';
+        resetForm();
+    });
+
+    // Закрытие модального окна
+    function closeModal() {
+        uploadModal.style.display = 'none';
+        resetForm();
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+    cancelUploadBtn.addEventListener('click', closeModal);
+
+    // Закрытие при клике вне модального окна
+    window.addEventListener('click', function(event) {
+        if (event.target === uploadModal) {
+            closeModal();
+        }
+    });
+
+    // Проверка файлов
+    function validateFiles() {
+        const certFile = certFileInput.files[0];
+        const keyFile = keyFileInput.files[0];
+        const caName = caNameInput.value.trim();
+
+        let certValid = false;
+        let keyValid = false;
+
+        // Скрываем ошибку при изменении полей
+        hideError();
+
+        // Проверка сертификата
+        if (certFile) {
+            const certExt = certFile.name.toLowerCase().split('.').pop();
+            if (certExt === 'cer' || certExt === 'crt') {
+                certFileStatus.textContent = '✓ Файл сертификата выбран';
+                certFileStatus.className = 'file-status success';
+                certValid = true;
+            } else {
+                certFileStatus.textContent = '❌ Выберите файл .cer или .crt';
+                certFileStatus.className = 'file-status error';
+                certValid = false;
+            }
+        } else {
+            certFileStatus.textContent = '';
+            certValid = false;
+        }
+
+        // Проверка ключа
+        if (keyFile) {
+            const keyExt = keyFile.name.toLowerCase().split('.').pop();
+            if (keyExt === 'key') {
+                keyFileStatus.textContent = '✓ Файл ключа выбран';
+                keyFileStatus.className = 'file-status success';
+                keyValid = true;
+            } else {
+                keyFileStatus.textContent = '❌ Выберите файл .key';
+                keyFileStatus.className = 'file-status error';
+                keyValid = false;
+            }
+        } else {
+            keyFileStatus.textContent = '';
+            keyValid = false;
+        }
+
+        // Активация кнопки отправки
+        submitUploadBtn.disabled = !(certValid && keyValid && caName.length > 0);
+    }
+
+    // Сброс формы
+    function resetForm() {
+        uploadCAForm.reset();
+        certFileStatus.textContent = '';
+        keyFileStatus.textContent = '';
+        certFileStatus.className = 'file-status';
+        keyFileStatus.className = 'file-status';
+        submitUploadBtn.disabled = true;
+        hideError();
+    }
+
+    // Слушатели событий для проверки файлов
+    certFileInput.addEventListener('change', validateFiles);
+    keyFileInput.addEventListener('change', validateFiles);
+    caNameInput.addEventListener('input', validateFiles);
+
+    // Обработка отправки формы
+    uploadCAForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        // Показываем спиннер
+        document.getElementById('spinner').style.display = 'flex';
+        submitUploadBtn.disabled = true;
+        submitUploadBtn.textContent = 'Загрузка...';
+        hideError();
+
+        fetch('/upload/ca', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.error || 'Ошибка сервера');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Показываем успешное сообщение
+                showSuccess('Удостоверяющий центр успешно загружен!');
+                setTimeout(() => {
+                    closeModal();
+                    // Обновляем список УЦ после успешной загрузки
+                    loadCAs();
+                }, 1500);
+            } else {
+                throw new Error(data.error || 'Неизвестная ошибка');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showError('Ошибка загрузки: ' + error.message);
+        })
+        .finally(() => {
+            // Скрываем спиннер
+            document.getElementById('spinner').style.display = 'none';
+            submitUploadBtn.disabled = false;
+            submitUploadBtn.textContent = 'Загрузить';
+        });
+    });
+
+    // Функция для показа успешного сообщения
+    function showSuccess(message) {
+        uploadError.style.background = '#e8f5e8';
+        uploadError.style.border = '1px solid #c3e6c3';
+        uploadError.style.color = '#155724';
+        uploadError.textContent = message;
+        uploadError.style.display = 'block';
+    }
+
+    // Функция для загрузки списка УЦ
+    // function loadCAs() {
+    //     fetch('/update/ca')
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error('Ошибка загрузки списка УЦ');
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             const select = document.getElementById('downloadCaName');
+    //             select.innerHTML = '';
+                
+    //             if (!data.cas || data.cas.length === 0) {
+    //                 select.innerHTML = '<option value="">Нет доступных УЦ</option>';
+    //                 return;
+    //             }
+                
+    //             data.cas.forEach(ca => {
+    //                 const option = document.createElement('option');
+    //                 option.value = ca.name;
+    //                 option.textContent = ca.displayName || ca.name;
+    //                 select.appendChild(option);
+    //             });
+    //         })
+    //         .catch(error => {
+    //             console.error('Ошибка загрузки списка УЦ:', error);
+    //             document.getElementById('downloadCaName').innerHTML = '<option value="">Ошибка загрузки</option>';
+    //         });
+    // }
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCAs();
+        
+        // Обработчик для кнопки обновления списка УЦ
+        document.getElementById('refreshDownloadCA').addEventListener('click', function() {
+            loadCAs();
+        });
+        
+        // Обработчик для формы скачивания
+        document.getElementById('downloadForm').addEventListener('submit', function(e) {
+            const selectedCA = document.getElementById('downloadCaName').value;
+            if (!selectedCA) {
+                e.preventDefault();
+                showError('Пожалуйста, выберите Удостоверяющий Центр');
+                return;
+            }
+            document.getElementById('downloadFormCaInput').value = selectedCA;
+        });
+    });
+</script>
+
+<script>
+    // Функция для загрузки списка УЦ и обновления указанного селекта
+    async function loadCAListInto(selectId) {
+        const select = document.getElementById(selectId);
+        const button = selectId === 'caName' 
+            ? document.getElementById('refreshCA') 
+            : document.getElementById('refreshDownloadCA');
+
+        // Сохраняем состояние кнопки, если она существует
+        if (button) {
+            button.disabled = true;
+            button.textContent = '⏳';
+        }
+
+        select.innerHTML = '<option value="">Загрузка...</option>';
+
+        try {
+            const response = await fetch('/update/ca');
+            if (!response.ok) throw new Error('Сервер вернул ошибку');
+            const data = await response.json();
+
+            select.innerHTML = '';
+
+            if (data.certificates && data.certificates.length > 0) {
+                data.certificates.forEach(ca => {
+                    const option = document.createElement('option');
+                    option.value = ca;
+
+                    // Красивое отображение имени
+                    let label = ca;
+                    if (ca.includes('-2048')) {
+                        label = ca.replace('-2048', ' (RSA 2048)');
+                    } else if (ca.includes('-4096')) {
+                        label = ca.replace('-4096', ' (RSA 4096)');
+                    }
+                    // Можно добавить другие шаблоны по мере необходимости
+
+                    option.textContent = label;
+                    select.appendChild(option);
+                });
+            } else {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Нет УЦ';
+                select.appendChild(opt);
+            }
+        } catch (err) {
+            console.error('Ошибка загрузки УЦ:', err);
+            select.innerHTML = '<option value="">Ошибка</option>';
+        } finally {
+            if (button) {
+                button.disabled = false;
+                button.textContent = '🔄';
+            }
+        }
+    }
+
+    // Обновление скрытого поля формы при изменении выбора
+    document.addEventListener('DOMContentLoaded', () => {
+        const downloadSelect = document.getElementById('downloadCaName');
+        const hiddenInput = document.getElementById('downloadFormCaInput');
+
+        // Загружаем список при старте
+        loadCAListInto('downloadCaName');
+
+        // Синхронизируем выбор с формой
+        downloadSelect.addEventListener('change', () => {
+            hiddenInput.value = downloadSelect.value;
+        });
+
+        // Обработчик кнопки обновления
+        document.getElementById('refreshDownloadCA').addEventListener('click', () => {
+            loadCAListInto('downloadCaName');
+            // После обновления сбрасываем значение в форме
+            hiddenInput.value = '';
+        });
+    });
+</script>
+
+    <script>
+    async function loadCAList() {
+        const select = document.getElementById('caName');
+        const button = document.getElementById('refreshCA');
+
+        // Показываем состояние загрузки
+        select.innerHTML = '<option value="">Загрузка...</option>';
+        button.disabled = true;
+        button.textContent = '⏳';
+
+        try {
+            const response = await fetch('/update/ca');
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке списка УЦ');
+            }
+            const data = await response.json();
+
+            // Очищаем селект
+            select.innerHTML = '';
+
+            if (data.certificates && data.certificates.length > 0) {
+                data.certificates.forEach(ca => {
+                    const option = document.createElement('option');
+                    option.value = ca;
+
+                    // Попытаемся красиво отобразить имя (как в вашем примере)
+                    let label = ca;
+                    if (ca.includes('-2048')) {
+                        label = ca.replace('-2048', ' (RSA 2048)');
+                    } else if (ca.includes('-4096')) {
+                        label = ca.replace('-4096', ' (RSA 4096)');
+                    }
+                    // Можно расширить логику форматирования по мере необходимости
+
+                    option.textContent = label;
+                    select.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Нет доступных УЦ';
+                select.appendChild(option);
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            select.innerHTML = '<option value="">Ошибка загрузки</option>';
+        } finally {
+            button.disabled = false;
+            button.textContent = '🔄';
+        }
+    }
+
+    // Загружаем список при загрузке страницы
+    document.addEventListener('DOMContentLoaded', loadCAList);
+
+    // Назначаем обработчик на кнопку
+    document.getElementById('refreshCA').addEventListener('click', loadCAList);
+</script>
+
+    <script>
+    document.getElementById('toggleAdvanced').addEventListener('click', function() {
+        const advanced = document.getElementById('advanced-settings');
+        if (advanced.style.display === 'none') {
+            advanced.style.display = 'block';
+            this.textContent = 'Скрыть расширенные настройки';
+        } else {
+            advanced.style.display = 'none';
+            this.textContent = 'Расширенные настройки';
+        }
+    });
+</script>
+
+<script>
+    const downloadSelect = document.getElementById('downloadCaName');
+    const downloadForm = document.getElementById('downloadForm');
+
+    // Обновляем action формы при изменении выбора
+    downloadSelect.addEventListener('change', function() {
+        const selectedValue = this.value;
+        downloadForm.action = `/download/ca/${selectedValue}`;
+    });
+
+    // Инициализируем при загрузке
+    document.addEventListener('DOMContentLoaded', function() {
+        const initialValue = downloadSelect.value;
+        downloadForm.action = `/download/ca/${initialValue}`;
+    });
+</script>
+
+    <!-- Скрипт для работы множественного выбора и скачивания -->
+    <script>
+        // Множественный выбор для типов сертификатов
+        const multiselect = document.getElementById('certTypeMultiselect');
+        const display = document.getElementById('certTypeDisplay');
+        const dropdown = document.getElementById('certTypeDropdown');
+        const hiddenInput = document.getElementById('certType');
+        const options = dropdown.querySelectorAll('.multiselect-option');
+        
+        let selectedValues = [];
+        let selectedCert = null;
+        
+        // Открытие/закрытие dropdown
+        display.addEventListener('click', function(e) {
+            e.stopPropagation();
+            multiselect.classList.toggle('multiselect-open');
+        });
+        
+        // Выбор опции
+        options.forEach(option => {
+            option.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const text = this.textContent;
+                
+                if (selectedValues.includes(value)) {
+                    // Удаление выбранного значения
+                    selectedValues = selectedValues.filter(v => v !== value);
+                    this.classList.remove('selected');
+                } else {
+                    // Добавление выбранного значения
+                    selectedValues.push(value);
+                    this.classList.add('selected');
+                }
+                
+                updateDisplay();
+                updateHiddenInput();
+            });
+        });
+        
+        // Закрытие dropdown при клике вне его
+        document.addEventListener('click', function() {
+            multiselect.classList.remove('multiselect-open');
+        });
+        
+        // Обновление отображения выбранных значений
+        function updateDisplay() {
+            if (selectedValues.length === 0) {
+                display.innerHTML = '<span class="placeholder">Выберите типы сертификатов...</span>';
+                return;
+            }
+            
+            display.innerHTML = '';
+            selectedValues.forEach(value => {
+                const option = Array.from(options).find(opt => opt.getAttribute('data-value') === value);
+                const text = option ? option.textContent : value;
+                
+                const tag = document.createElement('span');
+                tag.className = 'selected-tag';
+                tag.innerHTML = `${text}<span class="remove" data-value="${value}">×</span>`;
+                display.appendChild(tag);
+            });
+            
+            // Добавляем обработчики для кнопок удаления
+            display.querySelectorAll('.remove').forEach(removeBtn => {
+                removeBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const valueToRemove = this.getAttribute('data-value');
+                    selectedValues = selectedValues.filter(v => v !== valueToRemove);
+                    
+                    // Снимаем выделение с соответствующей опции
+                    const optionToDeselect = Array.from(options).find(opt => 
+                        opt.getAttribute('data-value') === valueToRemove
+                    );
+                    if (optionToDeselect) {
+                        optionToDeselect.classList.remove('selected');
+                    }
+                    
+                    updateDisplay();
+                    updateHiddenInput();
+                });
+            });
+        }
+        
+        // Обновление скрытого поля для отправки данных
+        function updateHiddenInput() {
+            hiddenInput.value = selectedValues.join(',');
+        }
+        
+        // Загрузка списка сертификатов
+        function loadCertificates() {
+            fetch('/api/certificates')
+                .then(response => response.json())
+                .then(certificates => {
+                    const certList = document.getElementById('certList');
+                    
+                    if (certificates.length === 0) {
+                        certList.innerHTML = '<div class="no-certs">Сертификаты не найдены</div>';
+                        return;
+                    }
+                    
+                    certList.innerHTML = '';
+                    certificates.forEach(cert => {
+                        const certItem = document.createElement('div');
+                        certItem.className = 'cert-item';
+                        certItem.innerHTML = `
+                            <div class="cert-name">${cert.name}</div>
+                            <div class="cert-details">
+                                Тип: ${cert.type} | Создан: ${cert.created}
+                            </div>
+                        `;
+                        
+                        certItem.addEventListener('click', function() {
+                            // Снимаем выделение с предыдущего элемента
+                            document.querySelectorAll('.cert-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            
+                            // Выделяем текущий элемент
+                            this.classList.add('selected');
+                            selectedCert = cert.name;
+                            
+                            // Активируем кнопку скачивания
+                            document.getElementById('downloadBtn').disabled = false;
+                        });
+                        
+                        certList.appendChild(certItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки списка сертификатов:', error);
+                    document.getElementById('certList').innerHTML = 
+                        '<div class="no-certs">Ошибка загрузки списка</div>';
+                });
+        }
+        
+        // Обработчик кнопки скачивания
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (selectedCert) {
+                // Создаем временную ссылку для скачивания
+                const downloadUrl = `/download/ca/${encodeURIComponent(selectedCert)}`;
+                window.open(downloadUrl, '_blank');
+            }
+        });
+        
+        // Обработчик отправки формы
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Проверяем, что выбран хотя бы один тип сертификата
+            if (selectedValues.length === 0) {
+                e.preventDefault();
+                alert('Пожалуйста, выберите хотя бы один тип сертификата');
+                return;
+            }
+            
+            document.getElementById('spinner').style.display = 'flex';
+            const btn = document.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.textContent = 'Генерация...';
+            
+            // После успешной генерации обновляем список сертификатов
+            setTimeout(() => {
+                loadCertificates();
+            }, 2000);
+        });
+        
+        // Загружаем список сертификатов при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCertificates();
+        });
+    </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const keyTypeSelect = document.getElementById('keyType');
+        const liveTimeSelect = document.getElementById('liveTime');
+
+        // Сохраняем все опции изначально
+        const allOptions = Array.from(liveTimeSelect.querySelectorAll('option'));
+
+        function updateLiveTimeOptions() {
+            const selectedKeyType = keyTypeSelect.value;
+
+            // Определяем, является ли ключ ГОСТом
+            const isGost = selectedKeyType === 'GOST2012256' || selectedKeyType === 'GOST2012512';
+
+            // Очищаем текущие опции
+            liveTimeSelect.innerHTML = '';
+
+            // Фильтруем опции
+            allOptions.forEach(option => {
+                const value = option.value;
+                if (!isGost) {
+                    // Для RSA — все опции разрешены
+                    liveTimeSelect.appendChild(option.cloneNode(true));
+                } else {
+                    // Для ГОСТ — только разрешённые
+                    if (['1year', '1day', 'overdue'].includes(value)) {
+                        liveTimeSelect.appendChild(option.cloneNode(true));
+                    }
+                }
+            });
+
+            // Если текущее значение не в списке — сбрасываем на первый доступный
+            if (!Array.from(liveTimeSelect.options).some(opt => opt.value === liveTimeSelect.value)) {
+                liveTimeSelect.selectedIndex = 0;
+            }
+        }
+
+        // Инициализация при загрузке
+        updateLiveTimeOptions();
+
+        // Слушаем изменения типа ключа
+        keyTypeSelect.addEventListener('change', updateLiveTimeOptions);
+    });
+</script>
+</body>
+</html>

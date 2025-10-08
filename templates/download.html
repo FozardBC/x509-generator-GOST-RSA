@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Сертификат готов</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>✅ Сертификат успешно создан!</h1>
+        <h1>Сгенерировано <strong>{{.Count}} сертификатов</strong></h1>
+        <p>Common Name: <strong>{{.CommonName}}</strong></p>
+        
+
+        <form action="/download/{{.ReqID}}" method="get" style="display: inline;">
+            <input type="hidden" name="caName" value="{{.SelectedCA}}">
+            <input type="hidden" name="commonName" value="{{.CommonName}}">
+            <button type="submit" class="btn">Скачать</button>
+        </form>
+<!-- 
+        <a href="/download/{{.ReqID}}" class="btn">
+            Скачать сертификат (.zip)
+        </a> -->
+        
+       
+    </div>
+
+    <div class="container">
+  
+ <!-- Кнопка "Назад на главную" -->
+       <form action="/" method="get" style="display: inline;">
+    <button type="submit" class="btn">Вернуться на главную</button>
+</form>
+    </div>
+</body>
+</html>

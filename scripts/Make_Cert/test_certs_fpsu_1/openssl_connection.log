@@ -1,0 +1,128 @@
+depth=1 DC = lan, DC = amicon, CN = amicon-ca
+verify error:num=19:self-signed certificate in certificate chain
+verify return:1
+depth=1 DC = lan, DC = amicon, CN = amicon-ca
+verify return:1
+depth=0 C = RU, ST = Msk, L = Msk, O = AMICON, OU = ser2_fpsu department, CN = ser2, emailAddress = support@amicon.ru
+verify return:1
+CONNECTED(00000003)
+OCSP response: no response sent
+---
+Certificate chain
+ 0 s:C = RU, ST = Msk, L = Msk, O = AMICON, OU = ser2_fpsu department, CN = ser2, emailAddress = support@amicon.ru
+   i:DC = lan, DC = amicon, CN = amicon-ca
+   a:PKEY: rsaEncryption, 2048 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Feb 17 13:54:22 2025 GMT; NotAfter: Feb 17 14:04:22 2027 GMT
+-----BEGIN CERTIFICATE-----
+MIIHdTCCBV2gAwIBAgITYQAGw2WjROGbQ8yhSwAFAAbDZTANBgkqhkiG9w0BAQsF
+ADBBMRMwEQYKCZImiZPyLGQBGRYDbGFuMRYwFAYKCZImiZPyLGQBGRYGYW1pY29u
+MRIwEAYDVQQDEwlhbWljb24tY2EwHhcNMjUwMjE3MTM1NDIyWhcNMjcwMjE3MTQw
+NDIyWjCBijELMAkGA1UEBhMCUlUxDDAKBgNVBAgTA01zazEMMAoGA1UEBxMDTXNr
+MQ8wDQYDVQQKEwZBTUlDT04xHTAbBgNVBAsMFHNlcjJfZnBzdSBkZXBhcnRtZW50
+MQ0wCwYDVQQDEwRzZXIyMSAwHgYJKoZIhvcNAQkBFhFzdXBwb3J0QGFtaWNvbi5y
+dTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALSYAnw3hZBzE78mtGXK
+ko3rvnuVEsgradaLbQ0mBrymT62bug0J8uRQW8onEf5HzKHeQGlrCl2Kxf1rPsfw
+INF3hY8opussAu4QxwzaVWlefl8W1FKEj89+Jot7nAQnZci2inLOh3fE1EzmIND0
+8nNlvWH0NnY5J0kbCQZHVVIctX1wG2Os1gOQ1oy54igsqZBAkHESLwB4ZiY7k/Lk
+ipT39pLbKWavVpcv7ECovhdzF2wwaYX5/QAKTg/OYO/ZSxsV0j4+Uz7Cy+HzEWIj
+l1pZvIxozvHju/waL+cqMEHB9/Ueg1rn4CPqCte5RVwD1yf0k/FROQBdK3HVg95H
+PEECAwEAAaOCAxowggMWMBIGA1UdEQQLMAmCB1NlcnZlcjIwHQYDVR0OBBYEFCRd
+zRpbXyERuJgFfB16ezemYBLgMB8GA1UdIwQYMBaAFN95/WyapCaXci7P+q6gtOaq
+YYZbMIIBAAYDVR0fBIH4MIH1MIHyoIHvoIHshoGybGRhcDovLy9DTj1hbWljb24t
+Y2EoNSksQ049QU1JU0VSVixDTj1DRFAsQ049UHVibGljJTIwS2V5JTIwU2Vydmlj
+ZXMsQ049U2VydmljZXMsQ049Q29uZmlndXJhdGlvbixEQz1hbWljb24sREM9bGFu
+P2NlcnRpZmljYXRlUmV2b2NhdGlvbkxpc3Q/YmFzZT9vYmplY3RDbGFzcz1jUkxE
+aXN0cmlidXRpb25Qb2ludIY1aHR0cDovL0FNSVNFUlYuYW1pY29uLmxhbi9DZXJ0
+RW5yb2xsL2FtaWNvbi1jYSg1KS5jcmwwggE+BggrBgEFBQcBAQSCATAwggEsMIGn
+BggrBgEFBQcwAoaBmmxkYXA6Ly8vQ049YW1pY29uLWNhLENOPUFJQSxDTj1QdWJs
+aWMlMjBLZXklMjBTZXJ2aWNlcyxDTj1TZXJ2aWNlcyxDTj1Db25maWd1cmF0aW9u
+LERDPWFtaWNvbixEQz1sYW4/Y0FDZXJ0aWZpY2F0ZT9iYXNlP29iamVjdENsYXNz
+PWNlcnRpZmljYXRpb25BdXRob3JpdHkwVAYIKwYBBQUHMAKGSGh0dHA6Ly9BTUlT
+RVJWLmFtaWNvbi5sYW4vQ2VydEVucm9sbC9BTUlTRVJWLmFtaWNvbi5sYW5fYW1p
+Y29uLWNhKDUpLmNydDAqBggrBgEFBQcwAYYeaHR0cDovL0FNSVNFUlYuYW1pY29u
+Lmxhbi9vY3NwMAsGA1UdDwQEAwIFoDA7BgkrBgEEAYI3FQcELjAsBiQrBgEEAYI3
+FQiClqFkqI8m5Ycsg7aUB4Gyom8+gf2sE4byy3wCAWQCAQUwEwYDVR0lBAwwCgYI
+KwYBBQUHAwEwGwYJKwYBBAGCNxUKBA4wDDAKBggrBgEFBQcDATANBgkqhkiG9w0B
+AQsFAAOCAgEAcmu+C2u5fi+fF/ld0roU7GwY1JdNxMm2aq4fw1jwIevYB5Y70PEY
+6KxkrOe/a4899PQOvtFCvmGNWKiE2YZzNgcBOquAP0QXBDl14oeu3H1Vo/7/o0m8
+GWNeyIvOZXRN+fMr4uF4XLlH2uZPiWY4/h7XoW4ICL1YWQmm7WIOSZ2cSM6amXHA
+S9fbQjPtK7u0SfOfe5Lrr+rGkKi2Ja0jvH/PDd9lX78zg3BabJ5/ioy1Q7SO1fdV
+FvVGok39zed9p3173FR61KQZgS7Ac5TFBy14NT+o11nrh9VHeg7SprT4227xsR3w
+JfHAF6j1g+nTb37WoheHx374RP/H9XDEsM8IB4BMM6kAbe5YbSNmr0yRuVAE2WPr
+J1e0I2UtRsQicbtDnGVZwV5WF/SHGj6T+GRG1F9jJGGfHz1o97FIKQLHBMJAqb8b
+8QRRFWowLz6k9wNqNnGpsz2gZx6llE8x6nK99zNDaofsVmmkb7jX/AXn+ba5J5Gp
+tNx+c5OlMp7q8VTw6IlS4zvlwtSOHzyMUUyYNm6QbxGS2JNB5Me/sZhoKdaiJSjD
+24c3ecxIb0m7DM+7Fwjl+zLBW1ZeyUBS9OTMqn0fRpnCUGlfTrPIBcjtFySYrskN
+dQaNaP3pR0V000VnmaXRZHsBp3nHKCEHoCF/VVKKyZ77PSo325pnmGU=
+-----END CERTIFICATE-----
+ 1 s:DC = lan, DC = amicon, CN = amicon-ca
+   i:DC = lan, DC = amicon, CN = amicon-ca
+   a:PKEY: rsaEncryption, 4096 (bit); sigalg: RSA-SHA256
+   v:NotBefore: Mar 27 14:12:29 2024 GMT; NotAfter: Sep 25 08:34:22 2078 GMT
+-----BEGIN CERTIFICATE-----
+MIIFnTCCA4WgAwIBAgIQEOPTlxhe+p1LGKXnyPbNoDANBgkqhkiG9w0BAQsFADBB
+MRMwEQYKCZImiZPyLGQBGRYDbGFuMRYwFAYKCZImiZPyLGQBGRYGYW1pY29uMRIw
+EAYDVQQDEwlhbWljb24tY2EwIBcNMjQwMzI3MTQxMjI5WhgPMjA3ODA5MjUwODM0
+MjJaMEExEzARBgoJkiaJk/IsZAEZFgNsYW4xFjAUBgoJkiaJk/IsZAEZFgZhbWlj
+b24xEjAQBgNVBAMTCWFtaWNvbi1jYTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCC
+AgoCggIBALrhskjx6qXN858MwvN6J7d3ZOa/GUPUYVfKh0u4eQh0QgxrcLL3118u
+j440LqQvk8whJGLIjZ/YglY+xoAI4S2h4rIqmzzdsuzxK4aD+e3hUsleGhIGFQNy
+Qvgl+4nuGIXpSQDnJWsK2/YSBOPAs1pmXDLwFZfm4S1vkHimQOyeZ3F7pdNTdD9D
+4RYvZssO9IbzRYumIFi9Afl/cAsDcTfRFLjiBJKPKVpco4Au22FTQG9UDJtm4dn8
+3UOnDP3zZA52el3vCWECgTTA8vhNAURmdajviB/u3mAVrkn/8kiqFfsIY8cHIdzq
+4DcyAta+f+FfHWY/LZ+4BiFhk+JPBIgMjjaneunt1wwgQqIWyLpJ/MGL9OKLcEK+
+GKp46kUt9iBONoWDMB4edHlrk5VTuDbmk++u5+kAHGVnTVHcsTMJmtCV0P5EXo+Q
+Y2bi/ab2QRICP5XocxmK7UeZuY1NbfMVI7J3sJDR+MRfXuRW8hfV912nJG8TWj6z
+V2raYC6p8HLEmaEYdS5A4OTcUdDwwjQ7UAty0UXx2v6o7NN85yAroH4ycq1Jo4Ri
+/HQtPqKLj4n6ro+KvPS0eHybquu9E0dInOAoX0UPCCknnzVf16vsZ1YrC5Dhf1XZ
+wKo7zvOW3LQDRy+2vOeyqvhnQNJm6mYv0+zNG24mJc95hEwHgKHdAgMBAAGjgY4w
+gYswEwYJKwYBBAGCNxQCBAYeBABDAEEwCwYDVR0PBAQDAgGGMA8GA1UdEwEB/wQF
+MAMBAf8wHQYDVR0OBBYEFN95/WyapCaXci7P+q6gtOaqYYZbMBIGCSsGAQQBgjcV
+AQQFAgMFAAUwIwYJKwYBBAGCNxUCBBYEFAD6vRUPlEkjzjMr96svpfEJiDyWMA0G
+CSqGSIb3DQEBCwUAA4ICAQAV/zn8GJHd5B8mphdPyS4/ciBNoYrDfrmL/kEPCWGP
+26/1f94ktCMhtkb2gEdg6UOO4xYrcfCvhjd7VUvwdMALrDWjxxgipLA/K3ACNSVE
+HuGAaBicwzzrD4xGJVX+u0KKM/+JoIeNpQVPYweHURgh1q+R/1Jgs7PGB7LfeVci
+BKD+YPtRNYfPp0MJ1Eqt2KAWM8B9n3nV2zBxOXmtG6XDf0nIBMON8+E9q+4aKe33
+ZoVtQGU6CSQNaHm0v4kwgaqIXPQKhRo65Y0/pocQavlsvrm2PcPNGzhlo0gTfF3+
+MT8Tme33kr245XIAfJTWD/HKW0Xy/TCnmOIrgTR1zENdGtHzwiXJ7o1hiqZMJd/y
+Jxd25KlwYZFIXkmvP4unUCqxlECite/MoxizDXpo2ZxTglNqbcEyQJtnZKh58l0a
+lyNMQSl4f53Q1S2Nxpf48BwqkIKcOANK/AdzrkPghpGZLreMd8Zy6RxewecZ1bfx
+CgUvWKFhd+4CHAa5RLl7CYKrbYdUVtf88Uagoh1h5kJ7t+/v6J6H/EcniK000TYu
+Trc8CssDA+Ap7yamggcvlLw1KQ58fQy7MLoX1aSlkEl2r5dBiIhfXGpi6xsV9GZt
+9tzJNhRJr5M+Pw7IIrwl++Rj33RhNwGM8230Kr4MwdzouhtBG6nD2OmzPTh0xBsG
+vw==
+-----END CERTIFICATE-----
+---
+Server certificate
+subject=C = RU, ST = Msk, L = Msk, O = AMICON, OU = ser2_fpsu department, CN = ser2, emailAddress = support@amicon.ru
+issuer=DC = lan, DC = amicon, CN = amicon-ca
+---
+Acceptable client certificate CA names
+DC = lan, DC = amicon, CN = amicon-ca
+C = RU, CN = \D0\9A\D0\BE\D1\80\D0\BD\D0\B5\D0\B2\D0\BE\D0\B9 \D1\81\D0\B5\D1\80\D1\82\D0\B8\D1\84\D0\B8\D0\BA\D0\B0\D1\82 \D0\90\D0\A0\D0\9C-\D0\98: 15:11:33 05.02.2025
+C = RU, CN = \D0\90\D0\B4\D0\BC\D0\B8\D0\BD\D0\B8\D1\81\D1\82\D1\80\D0\B0\D1\82\D0\BE\D1\80 \D0\90\D0\A0\D0\9C-\D0\98. \D0\92\D1\80\D0\B5\D0\BC\D1\8F \D1\81\D0\BE\D0\B7\D0\B4\D0\B0\D0\BD\D0\B8\D1\8F: 15:15:26 05.02.2025
+C = RU, ST = Moscow, L = Moscow, O = AMICON, OU = Cybersecurity department, CN = AMI Root CA\1B[C 2
+ST = Msk, L = Msk, O = AMICON, OU = Cybersecurity department, emailAddress = support@amicon.ru, CN = AMI Root CA
+C = RU, ST = Msk, L = Msk, O = AMICON, OU = Cybersecurity department, emailAddress = support@amicon.ru, CN = AMI Root CA
+C = RU, ST = Moscow, L = Moscow, O = Amicon, OU = Certificate Authority, CN = CA gost2012_256 created 11:24:20 14.02.2021, emailAddress = info@amicon.ru
+C = RU, ST = Moscow, L = Moscow, O = Amicon, OU = Certificate Authority, CN = Root gost2012_256 created 11:24:20 14.02.2021, emailAddress = info@amicon.ru
+OGRN = 1234567890123, INN = 001234567890, street = \D1\83\D0\BB. \D0\A1\D1\83\D1\89\D1\91\D0\B2\D1\81\D0\BA\D0\B8\D0\B9 \D0\B2\D0\B0\D0\BB \D0\B4. 18, C = RU, ST = \D0\B3. \D0\9C\D0\BE\D1\81\D0\BA\D0\B2\D0\B0, L = \D0\9C\D0\BE\D1\81\D0\BA\D0\B2\D0\B0, O = \D0\9E\D0\9E\D0\9E \"\D0\9A\D0\A0\D0\98\D0\9F\D0\A2\D0\9E-\D0\9F\D0\A0\D0\9E\", CN = \D0\A2\D0\B5\D1\81\D1\82\D0\BE\D0\B2\D1\8B\D0\B9 \D0\A3\D0\A6 \D0\9E\D0\9E\D0\9E \"\D0\9A\D0\A0\D0\98\D0\9F\D0\A2\D0\9E-\D0\9F\D0\A0\D0\9E\"
+Requested Signature Algorithms: ECDSA+SHA256:ECDSA+SHA384:ECDSA+SHA512:Ed25519:Ed448:RSA-PSS+SHA256:RSA-PSS+SHA384:RSA-PSS+SHA512:RSA-PSS+SHA256:RSA-PSS+SHA384:RSA-PSS+SHA512:RSA+SHA256:RSA+SHA384:RSA+SHA512:ECDSA+SHA224:RSA+SHA224:0x09+0x07:0x0A+0x07:0x0B+0x07:0x0C+0x07:0x0D+0x07:0x0E+0x07:0x0F+0x07:0x40+0x08:0x41+0x08:0xEE+0xEE:0xEF+0xEF
+Shared Requested Signature Algorithms: ECDSA+SHA256:ECDSA+SHA384:ECDSA+SHA512:Ed25519:Ed448:RSA-PSS+SHA256:RSA-PSS+SHA384:RSA-PSS+SHA512:RSA-PSS+SHA256:RSA-PSS+SHA384:RSA-PSS+SHA512:RSA+SHA256:RSA+SHA384:RSA+SHA512
+Peer signing digest: SHA256
+Peer signature type: RSA-PSS
+Server Temp Key: X25519, 253 bits
+---
+SSL handshake has read 5394 bytes and written 4194 bytes
+Verification error: self-signed certificate in certificate chain
+---
+New, TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384
+Server public key is 2048 bit
+Secure Renegotiation IS NOT supported
+Compression: NONE
+Expansion: NONE
+No ALPN negotiated
+Early data was not sent
+Verify return code: 19 (self-signed certificate in certificate chain)
+---
+DONE
