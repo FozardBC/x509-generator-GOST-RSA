@@ -163,12 +163,28 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRe
 		}
 	}
 
+	var oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
+
 	template := x509.Certificate{
 		SerialNumber: SERIALID,
 		Subject: pkix.Name{
-			CommonName:   gen.CR.CommonName,
-			Organization: []string{gen.CR.Organization},
-			Country:      []string{strings.ToUpper(gen.CR.Country)},
+			CommonName: gen.CR.CommonName,
+			Country:    []string{strings.ToUpper(gen.CR.Country)},
+			Province:   []string{gen.CR.Province}, //
+			Locality:   []string{gen.CR.Locality},
+
+			Organization:       []string{gen.CR.Organization},
+			OrganizationalUnit: []string{gen.CR.OrganizationUnit}, //
+
+			ExtraNames: []pkix.AttributeTypeAndValue{
+				{
+					Type: oidEmailAddress,
+					Value: asn1.RawValue{
+						Tag:   asn1.TagIA5String,
+						Bytes: []byte(gen.CR.Email),
+					},
+				},
+			},
 		},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
@@ -213,6 +229,14 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRe
 			Value:    aiaInfo,
 		})
 
+	}
+
+	if gen.CR.UPN != " " {
+		ex, err := createUPNExtension(gen.CR.UPN)
+		if err != nil {
+			return fmt.Errorf("ошибка при добавлении поля User Principal Name:%w", err)
+		}
+		template.ExtraExtensions = append(template.ExtraExtensions, ex)
 	}
 
 	// === 5. Подпись сертификата ===
@@ -320,4 +344,43 @@ func buildAuthorityInfoAccess(parameter string) ([]byte, error) {
 	}
 
 	return asn1.Marshal(aia)
+}
+
+func createUPNExtension(upn string) (pkix.Extension, error) {
+	type UPN struct {
+		A string `asn1:"utf8"`
+	}
+	type OtherName struct {
+		OID   asn1.ObjectIdentifier
+		Value interface{} `asn1:"tag:0"`
+	}
+	type GeneralNames struct {
+		OtherName OtherName `asn1:"tag:0"`
+	}
+
+	upnExt, err := asn1.Marshal(GeneralNames{
+		OtherName: OtherName{
+			// init our ASN.1 object identifier
+			OID: asn1.ObjectIdentifier{
+				1, 3, 6, 1, 4, 1, 311, 20, 2, 3},
+			// This is the email address of the person we
+			// are generating the certificate for.
+			Value: UPN{
+				A: upn,
+			},
+		},
+	})
+
+	if err != nil {
+		return pkix.Extension{}, fmt.Errorf("ошибка кодирования otherName: %w", err)
+	}
+
+	extSubjectAltName := pkix.Extension{
+		Id:       asn1.ObjectIdentifier{2, 5, 29, 17},
+		Critical: false,
+		Value:    upnExt,
+	}
+
+	return extSubjectAltName, nil
+
 }

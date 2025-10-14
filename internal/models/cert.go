@@ -1,9 +1,14 @@
 package models
 
 type CertRequest struct {
-	CommonName            string `form:"commonName" binding:"required" validate:"required"`
-	Organization          string `form:"organization" binding:"required" validate:"required"`
-	Country               string `form:"country" binding:"required,len=2" validate:"required,len=2"`
+	CommonName       string `form:"commonName" binding:"required" validate:"required"`
+	Organization     string `form:"organization" binding:"required" validate:"required"`
+	OrganizationUnit string `form:"organizationUnit"`
+	Country          string `form:"country" binding:"required,len=2" validate:"required,len=2"`
+	Province         string `form:"province"`
+	Locality         string `form:"locality"`
+	Email            string `form:"email"`
+
 	Time                  string `form:"liveTime" binding:"required"`
 	UTC                   int    `form:"utc"`
 	KeyType               string `form:"keyType" binding:"required" validate:"required"`
@@ -13,4 +18,5 @@ type CertRequest struct {
 	AuthorityInfoAccess   string `form:"authorityInfoAccess"`
 	CrlDistributionPoints string `form:"crlDistributionPoints"`
 	Serial                int    `form:"serial"`
+	UPN                   string `form:"upn"`
 }

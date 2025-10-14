@@ -203,6 +203,7 @@
     </style>
 </head>
 <body>
+
     <div class="main-container">
         <!-- Левая часть - форма генерации -->
         <div class="container">
@@ -213,18 +214,39 @@
             <form action="/generate" method="post">
                 <div class="form-group">
                     <label for="commonName">Common Name (имя):</label>
-                    <input type="text" id="commonName" name="commonName" required>
+                    <input type="text" id="commonName" name="commonName" required="">
                 </div>
                 
                 <div class="form-group">
                     <label for="organization">Organization:</label>
-                    <input type="text" id="organization" name="organization" value="My Company">
+                    <input type="text" id="organization" name="organization" value="Amicon">
+                </div>
+
+                <div class="form-group">
+                    <label for="organizationUnit">Organization Unit:</label>
+                    <input type="text" id="organizationUnit" name="organizationUnit" value="Test">
                 </div>
                 
                 <div class="form-group">
                     <label for="country">Country:</label>
                     <input type="text" id="country" name="country" value="RU" maxlength="2">
                 </div>
+
+                <div class="form-group">
+                    <label for="locality">Locality:</label>
+                    <input type="text" id="locality" name="locality" value="Moscow" >
+                </div>
+
+                <div class="form-group">
+                    <label for="province">Province:</label>
+                    <input type="text" id="province" name="province" value="MSK" >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="text" id="email" name="email" value="info@amicon.ru" >
+                </div>
+                               
                 
                 <div class="form-group">
                     <label for="liveTime">Срок действия:</label>
@@ -242,7 +264,7 @@
                    
                     <!-- Чекбокс и текст в одной строке -->
                     <div class="checkbox-inline">
-                        <input type="checkbox" id="utcCheckbox" name="utc" value=1 checked>
+                        <input type="checkbox" id="utcCheckbox" name="utc" value="1" checked="">
                         <label for="utcCheckbox">Время по UTC (GMT)</label>
                         <span class="help-icon" title="Если не выбрано, то будет использовано время по МСК" style="margin-top: 0;margin-left: 0;">? </span>
                     </div>
@@ -306,29 +328,38 @@
                 </div>
 
                 <div class="form-group">
-    <button type="button" id="toggleAdvanced">Расширенные настройки</button>
+                <button type="button" id="toggleAdvanced">Расширенные настройки</button>
                 </div>
 
                 <!-- Скрытый блок с расширенными полями -->
                 <div id="advanced-settings" style="display: none; margin-top: 20px; margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px;">
-                    <h3>Дополнительные параметры</h3>
+                <h3>Дополнительные параметры</h3>
 
                     <div class="form-group">
                         <label for="crlDistributionPoints">CRL Distribution Points:</label>
-                        <input type="text" id="crlDistributionPoints" name="crlDistributionPoints" value=" " required title="Пример: http://192.168.28.3/ocsp,http://192.168.12.38/org.crl" > 
-                        <span class="help-icon" title="Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ">?</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="authorityInfoAccess">Authority Info Access:</label>
-                        <input type="text" id="crlDistributionPoints" name="authorityInfoAccess" value=" " required title="Пример: OCSP;http://192.168.28.4,CAIssuers;http://192.168.28.2">
-                        <span class="help-icon" title="Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ">?</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="serial">Serial Number:</label>
-                        <input type="number" id="serial" name="serial" value=0 required title="1234">
-                        <span class="help-icon" title="Если оставить 0 - сгерерирует сам">?</span>
+                        <input type="text" id="crlDistributionPoints" name="crlDistributionPoints" value=" "> 
+                        <div class="help-text">Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
                     </div>
                     
+                    <div class="form-group">
+                        <label for="authorityInfoAccess">Authority Info Access:</label>
+                        <input type="text" id="authorityInfoAccess" name="authorityInfoAccess" value=" ">
+                        <div class="help-text">Пример: OCSP;http://192.168.28.4,CAIssuers;http://192.168.28.2<br>Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="serial">Serial Number:</label>
+                        <input type="text" id="serial" name="serial" inputmode="numeric" pattern="[0-9]*" value="0" title="Введите только цифры" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                        <div class="help-text">Если оставить 0 — сгенерирует сам</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="upn">User Principal Name:</label>
+                        <input type="text" id="upn" name="upn" value=" ">
+                        <div class="help-text">Формат: user@domain.com или user@domain.local</div>
+                    </div>
+
+                  
                 </div>
 
                 <button type="submit">Сгенерировать сертификат</button>
@@ -340,9 +371,7 @@
         </div>
 
         <!-- Правая часть - скачивание сертификатов -->
-
-       
-       <div class="containerDOWNLOAD">
+        <div class="containerDOWNLOAD">
     <h2>Скачать сертификаты УЦ</h2>
 
     <div class="form-group">
@@ -357,57 +386,62 @@
 
     <div style="display: flex; gap: 10px; margin-top: 20px;">
         <form id="downloadForm" action="/download/cert" method="get" style="display: inline;">
-            <input type="hidden" id="downloadFormCaInput" name="caName" />
+            <input type="hidden" id="downloadFormCaInput" name="caName">
             <button type="submit" class="button" style="margin-bottom: 0;">Скачать</button>
         </form>
         
         <!-- Кнопка открытия модального окна -->
         <button type="button" id="openUploadModal" class="button" style="background: #6d39e7; margin-bottom: 0;">Загрузить УЦ</button>
+
+
+        <h2>Создать PKCS12 контейнер (.pfx)</h2>
+
+        <button type="button" id="createPfx" class="button" style="background: #6d39e7; margin-bottom: 0;">Создать</button>
     </div>
-</div>
+        </div>
 
 <!-- Модальное окно для загрузки CA -->
-<div id="uploadModal" class="modal" style="display: none;">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Загрузка Удостоверяющего Центра</h3>
-            <span class="close">&times;</span>
+        <div id="uploadModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Загрузка Удостоверяющего Центра</h3>
+                    <span class="close">×</span>
+                </div>
+                <div class="modal-body">
+                    <!-- Блок для отображения ошибок -->
+                    <div id="uploadError" class="error-message" style="display: none;"></div>
+                    
+                    <form id="uploadCAForm" action="/upload/ca" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="certFile">Сертификат (.cer/.crt):</label>
+                            <input type="file" id="certFile" name="certFile" accept=".cer,.crt" required="">
+                            <div id="certFileStatus" class="file-status"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="keyFile">Приватный ключ (.key):</label>
+                            <input type="file" id="keyFile" name="keyFile" accept=".key" required="">
+                            <div id="keyFileStatus" class="file-status"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="caName">Имя УЦ:</label>
+                            <input type="text" id="caName" name="caName" placeholder="Введите имя удостоверяющего центра" required="">
+                            <small class="form-text text-muted" style="color: #e74c3c;text-align: center; font-weight: bold; font-size: 0.875em; margin-top: 4px; display: block;">
+                ⚠️ Имя сертификата УЦ должно иметь вид <br>
+                [АЛГОРИТМ-НАЗВАНИЕ-ДЛИНАКЛЮЧА]<br>
+                Например "rsa-org1-2048".
+            </small>
+                        </div>
+                        
+                        <div class="modal-actions">
+                            <button type="button" id="cancelUpload" class="btn btn-secondary">Отмена</button>
+                            <button type="submit" id="submitUpload" class="btn" disabled="">Загрузить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="modal-body">
-            <!-- Блок для отображения ошибок -->
-            <div id="uploadError" class="error-message" style="display: none;"></div>
-            
-            <form id="uploadCAForm" action="/upload/ca" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="certFile">Сертификат (.cer/.crt):</label>
-                    <input type="file" id="certFile" name="certFile" accept=".cer,.crt" required>
-                    <div id="certFileStatus" class="file-status"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="keyFile">Приватный ключ (.key):</label>
-                    <input type="file" id="keyFile" name="keyFile" accept=".key" required>
-                    <div id="keyFileStatus" class="file-status"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="caName">Имя УЦ:</label>
-                    <input type="text" id="caName" name="caName" placeholder="Введите имя удостоверяющего центра" required>
-                    <small class="form-text text-muted" style="color: #e74c3c;text-align: center; font-weight: bold; font-size: 0.875em; margin-top: 4px; display: block;">
-        ⚠️ Имя сертификата УЦ должно иметь вид <br>
-        [АЛГОРИТМ-НАЗВАНИЕ-ДЛИНАКЛЮЧА]<br>
-        Например "rsa-org1-2048".
-    </small>
-                </div>
-                
-                <div class="modal-actions">
-                    <button type="button" id="cancelUpload" class="btn btn-secondary">Отмена</button>
-                    <button type="submit" id="submitUpload" class="btn" disabled>Загрузить</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 
 
@@ -451,6 +485,45 @@
 
 
 <style>
+
+ 
+   [data-tooltip] {
+    position: relative; /* Относительное позиционирование */ 
+   }
+   [data-tooltip]::after {
+    content: attr(data-tooltip); /* Выводим текст */
+    position: absolute; /* Абсолютное позиционирование */
+    width: 300px; /* Ширина подсказки */
+    left: 0; top: 0; /* Положение подсказки */
+    background: #3989c9; /* Синий цвет фона */
+    color: #fff; /* Цвет текста */
+    padding: 0.5em; /* Поля вокруг текста */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3); /* Параметры тени */
+    pointer-events: none; /* Подсказка */
+    opacity: 0; /* Подсказка невидима */
+    transition: 1s; /* Время появления подсказки */
+   } 
+   [data-tooltip]:hover::after {
+    opacity: 1; /* Показываем подсказку */
+    top: 2em; /* Положение подсказки */
+   }
+
+   .help-text {
+    margin-top: 5px;
+    font-size: 12px;
+    color: #666;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+    border-left: 3px solid #007cba;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    cursor: text;
+    line-height: 1.4;
+}
+ 
     .modal {
         position: fixed;
         z-index: 10000;
@@ -1181,5 +1254,6 @@
         keyTypeSelect.addEventListener('change', updateLiveTimeOptions);
     });
 </script>
+
 </body>
 </html>

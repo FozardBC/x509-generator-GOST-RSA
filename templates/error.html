@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Ошибка</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>❌ Ошибка</h1>
+        <h1>{{.Message}}</h1>
+      
+
+        {{if .Details}}
+            <p><strong>Дополнительно:</strong> {{.Details}}</p>
+        {{end}}
+
+        <!-- Кнопка "Назад на главную" -->
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="btn">Вернуться на главную</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -30,8 +30,9 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 		if err := c.ShouldBind(&Req); err != nil {
 			logHandler.Error("Ошибка при преобразовании JSON", "Ошибка", err.Error())
-			c.HTML(http.StatusBadRequest, "form.html", gin.H{
-				"Error": fmt.Sprintf("Ошибка валидации: %v", err),
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Ошибка при преобразовании JSON",
+				"Details": err.Error(),
 			})
 			return
 		}
@@ -41,7 +42,10 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 			logHandler.Error("invalid request", "err", err.Error())
 
-			c.JSON(http.StatusBadRequest, response.ValidationError(validatorErr))
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Ошибка при преобразовании JSON",
+				"Details": response.ValidationError(validatorErr),
+			})
 
 			return
 		}
@@ -73,7 +77,10 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 			if err := generator.GenCertAndTrustCA(Req, reqID); err != nil {
 				logHandler.Error("failed to generate cert and trust CA", "err", err.Error(), "Data", Req)
 
-				c.JSON(http.StatusInternalServerError, err.Error())
+				c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+					"Message": "Ошибка при генерации сертификатов",
+					"Details": err.Error(),
+				})
 
 				return
 			}
@@ -81,10 +88,6 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 			Req.CommonName = temp
 
 			_ = i
-		}
-
-		if Req.Count > 1 {
-
 		}
 
 		c.HTML(http.StatusOK, "download.html", gin.H{

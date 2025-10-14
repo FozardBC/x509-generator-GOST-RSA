@@ -26,9 +26,10 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		certFile, certHeader, err := c.Request.FormFile("certFile")
 		if err != nil {
 			logHadnler.Error(err.Error())
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"error":   "Не удалось получить файл сертификата: " + err.Error(),
+
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Не удалось получить файл сертификата",
+				"Details": err.Error(),
 			})
 			return
 		}
@@ -36,9 +37,9 @@ func New(log *slog.Logger) gin.HandlerFunc {
 
 		keyFile, keyHeader, err := c.Request.FormFile("keyFile")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"error":   "Не удалось получить файл ключа: " + err.Error(),
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Не удалось получить файл ключа",
+				"Details": err.Error(),
 			})
 			return
 		}
@@ -47,9 +48,10 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		// Получаем имя УЦ
 		caName := c.Request.FormValue("caName")
 		if caName == "" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"error":   "Имя УЦ не может быть пустым",
+
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Имя УЦ не может быть пустым",
+				"Details": "",
 			})
 			return
 		}
@@ -57,18 +59,20 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		// Проверяем расширения файлов
 		certExt := strings.ToLower(filepath.Ext(certHeader.Filename))
 		if certExt != ".cer" && certExt != ".crt" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"error":   "Файл сертификата должен иметь расширение .cer или .crt",
+
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Файл сертификата должен иметь расширение .cer или .crt",
+				"Details": "",
 			})
 			return
 		}
 
 		keyExt := strings.ToLower(filepath.Ext(keyHeader.Filename))
 		if keyExt != ".key" {
-			c.JSON(http.StatusBadRequest, gin.H{
-				"success": false,
-				"error":   "Файл ключа должен иметь расширение .key",
+
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Файл ключа должен иметь расширение .key",
+				"Details": "",
 			})
 			return
 		}
@@ -76,9 +80,10 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		// Создаем директорию для УЦ если не существует
 		caDir = filepath.Join(caDir, caName)
 		if err := os.MkdirAll(caDir, 0755); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Не удалось создать директорию для УЦ: " + err.Error(),
+
+			c.HTML(http.StatusBadRequest, "error.html", gin.H{
+				"Message": "Не удалось создать директорию для УЦ",
+				"Details": err.Error(),
 			})
 			return
 		}
@@ -87,18 +92,20 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		certPath := filepath.Join(caDir, fmt.Sprintf("%s.cer", caName))
 		certDst, err := os.Create(certPath)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Не удалось сохранить сертификат: " + err.Error(),
+
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Message": "Не удалось сохранить сертификат",
+				"Details": err.Error(),
 			})
 			return
 		}
 		defer certDst.Close()
 
 		if _, err := io.Copy(certDst, certFile); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Не удалось сохранить содержимое сертификата: " + err.Error(),
+
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Message": "Не удалось сохранить сертификат",
+				"Details": err.Error(),
 			})
 			return
 		}
@@ -107,18 +114,20 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		keyPath := filepath.Join(caDir, fmt.Sprintf("%s.key", caName))
 		keyDst, err := os.Create(keyPath)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Не удалось сохранить ключ: " + err.Error(),
+
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Message": "Не удалось сохранить ключ",
+				"Details": err.Error(),
 			})
 			return
 		}
 		defer keyDst.Close()
 
 		if _, err := io.Copy(keyDst, keyFile); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"success": false,
-				"error":   "Не удалось сохранить содержимое ключа: " + err.Error(),
+
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Message": "Не удалось сохранить ключ",
+				"Details": err.Error(),
 			})
 			return
 		}
