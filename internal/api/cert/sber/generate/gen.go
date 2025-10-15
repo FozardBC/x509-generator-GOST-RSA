@@ -1,13 +1,12 @@
-package generate
+package sber
 
 import (
 	"fmt"
 	"html-cer-gen/internal/api/middlewares/requestid"
 	"html-cer-gen/internal/lib/api/response"
 	"html-cer-gen/internal/models"
-	"html-cer-gen/internal/services/generator"
-	"html-cer-gen/internal/services/generator/gost"
-	rsa "html-cer-gen/internal/services/generator/rsa"
+	sbergen "html-cer-gen/internal/services/sberGen"
+	"html-cer-gen/internal/services/sberGen/generate/rsa"
 	"log/slog"
 	"net/http"
 
@@ -15,7 +14,8 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenerator *gost.GostCertificateGenerator) gin.HandlerFunc {
+// add  GostGenerator *gost.GostCertificateGenerator
+func New(log *slog.Logger, RsaGenerator *rsa.SberRSACertificateGenerator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		reqID := requestid.Get(c)
@@ -26,7 +26,7 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 		log.Debug("INFO", "body", c.Request.Body)
 
-		var Req *models.CertRequest
+		var Req *models.SberCertRequest
 
 		if err := c.ShouldBind(&Req); err != nil {
 			logHandler.Error("Ошибка при преобразовании JSON", "Ошибка", err.Error())
@@ -56,17 +56,17 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 			Req.Count = 1
 		}
 
-		var generator generator.Generator
+		var generator sbergen.SberGenerator
 
 		switch Req.KeyType {
 		case "rsa2048":
 			generator = RsaGenerator
 		case "rsa4096":
 			generator = RsaGenerator
-		default:
-			generator = GostGenerator
+			// default:
+			// 	generator = GostGenerator
+			// }
 		}
-
 		if Req.Count > 1 {
 			for i := range Req.Count {
 
@@ -90,19 +90,17 @@ func New(log *slog.Logger, RsaGenerator *rsa.RSACertificateGenerator, GostGenera
 
 				_ = i
 			}
+		}
 
-		} else {
+		if err := generator.GenCertAndTrustCA(Req, reqID); err != nil {
+			logHandler.Error("failed to generate cert and trust CA", "err", err.Error(), "Data", Req)
 
-			if err := generator.GenCertAndTrustCA(Req, reqID); err != nil {
-				logHandler.Error("failed to generate cert and trust CA", "err", err.Error(), "Data", Req)
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"Message": "Ошибка при генерации сертификатов",
+				"Details": err.Error(),
+			})
 
-				c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-					"Message": "Ошибка при генерации сертификатов",
-					"Details": err.Error(),
-				})
-
-				return
-			}
+			return
 		}
 
 		c.HTML(http.StatusOK, "download.html", gin.H{

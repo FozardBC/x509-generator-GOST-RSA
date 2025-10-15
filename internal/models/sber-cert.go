@@ -1,9 +1,15 @@
 package models
 
-type CertRequest struct {
+type SberCertRequest struct {
 	CommonName            string `form:"commonName" binding:"required" validate:"required"`
 	Organization          string `form:"organization" binding:"required" validate:"required"`
 	OrganizationUnit      string `form:"organizationUnit"`
+	OrganizationUnit2     string `form:"organizationUnit2"`
+	OrganizationUnit3     string `form:"organizationUnit3"`
+	OrganizationUnit4     string `form:"organizationUnit4"`
+	DomainComponent       string `form:"domainComponent"`
+	DomainComponent2      string `form:"domainComponent2"`
+	DomainComponent3      string `form:"domainComponent3"`
 	Country               string `form:"country" binding:"required,len=2" validate:"required,len=2"`
 	Province              string `form:"province"`
 	Locality              string `form:"locality"`
