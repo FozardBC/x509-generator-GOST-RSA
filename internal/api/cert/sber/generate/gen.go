@@ -108,6 +108,7 @@ func New(log *slog.Logger, RsaGenerator *rsa.SberRSACertificateGenerator) gin.Ha
 			"Count":      Req.Count,
 			"ReqID":      reqID,
 			"SelectedCA": Req.CAName,
+			"KeyType":    Req.KeyType,
 		})
 	}
 }

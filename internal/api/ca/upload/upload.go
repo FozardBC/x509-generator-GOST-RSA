@@ -3,6 +3,7 @@ package upload
 import (
 	"fmt"
 	"html-cer-gen/internal/api/middlewares/requestid"
+	"html-cer-gen/internal/lib/api/response"
 	"io"
 	"log/slog"
 	"net/http"
@@ -27,9 +28,8 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		if err != nil {
 			logHadnler.Error(err.Error())
 
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Не удалось получить файл сертификата",
-				"Details": err.Error(),
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "Не удалось получить файл сертификата." + err.Error(),
 			})
 			return
 		}
@@ -37,22 +37,16 @@ func New(log *slog.Logger) gin.HandlerFunc {
 
 		keyFile, keyHeader, err := c.Request.FormFile("keyFile")
 		if err != nil {
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Не удалось получить файл ключа",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось получить файл ключа"))
 			return
 		}
 		defer keyFile.Close()
 
 		// Получаем имя УЦ
-		caName := c.Request.FormValue("caName")
+		caName := c.Request.FormValue("caPersonalName")
 		if caName == "" {
 
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Имя УЦ не может быть пустым",
-				"Details": "",
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Имя УЦ не может быть пустым"))
 			return
 		}
 
@@ -60,20 +54,14 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		certExt := strings.ToLower(filepath.Ext(certHeader.Filename))
 		if certExt != ".cer" && certExt != ".crt" {
 
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Файл сертификата должен иметь расширение .cer или .crt",
-				"Details": "",
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Файл сертификата должен иметь расширение .cer или .crt"))
 			return
 		}
 
 		keyExt := strings.ToLower(filepath.Ext(keyHeader.Filename))
 		if keyExt != ".key" {
 
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Файл ключа должен иметь расширение .key",
-				"Details": "",
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Файл ключа должен иметь расширение .key"))
 			return
 		}
 
@@ -81,10 +69,8 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		caDir = filepath.Join(caDir, caName)
 		if err := os.MkdirAll(caDir, 0755); err != nil {
 
-			c.HTML(http.StatusBadRequest, "error.html", gin.H{
-				"Message": "Не удалось создать директорию для УЦ",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось создать директорию для УЦ"+fmt.Sprintf("err:%s", err.Error())))
+
 			return
 		}
 
@@ -93,20 +79,16 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		certDst, err := os.Create(certPath)
 		if err != nil {
 
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Message": "Не удалось сохранить сертификат",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось сохранить сертификат"+fmt.Sprintf("err:%s", err.Error())))
+
 			return
 		}
 		defer certDst.Close()
 
 		if _, err := io.Copy(certDst, certFile); err != nil {
 
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Message": "Не удалось сохранить сертификат",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось сохранить сертификат"+fmt.Sprintf("err:%s", err.Error())))
+
 			return
 		}
 
@@ -115,20 +97,16 @@ func New(log *slog.Logger) gin.HandlerFunc {
 		keyDst, err := os.Create(keyPath)
 		if err != nil {
 
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Message": "Не удалось сохранить ключ",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось сохранить ключ"+fmt.Sprintf("err:%s", err.Error())))
+
 			return
 		}
 		defer keyDst.Close()
 
 		if _, err := io.Copy(keyDst, keyFile); err != nil {
 
-			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
-				"Message": "Не удалось сохранить ключ",
-				"Details": err.Error(),
-			})
+			c.JSON(http.StatusBadRequest, response.Error("Не удалось сохранить ключ"+fmt.Sprintf("err:%s", err.Error())))
+
 			return
 		}
 

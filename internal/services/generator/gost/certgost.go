@@ -3,6 +3,7 @@ package gost
 import (
 	"fmt"
 	"html-cer-gen/internal/models"
+	"html-cer-gen/internal/services/generator"
 	"log/slog"
 	"net/url"
 	"os"
@@ -38,13 +39,13 @@ func (gen *GostCertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertR
 	gen.CR = CertRequest
 
 	// Пути к файлам
-	keyFile := filepath.Join(requestFolder, gen.CR.CommonName+".key")
+	keyFile := filepath.Join(requestFolder, gen.CR.CommonName+generator.KeyExt)
 	csrFile := filepath.Join(requestFolder, gen.CR.CommonName+".csr")
-	certFile := filepath.Join(requestFolder, gen.CR.CommonName+".cer")
+	certFile := filepath.Join(requestFolder, gen.CR.CommonName+generator.CertExt)
 
 	caDir := filepath.Join(CAfolder, gen.CR.CAName)
-	caCertFile := filepath.Join(caDir, gen.CR.CAName+".cer")
-	caKeyFile := filepath.Join(caDir, gen.CR.CAName+".key")
+	caCertFile := filepath.Join(caDir, gen.CR.CAName+generator.CertExt)
+	caKeyFile := filepath.Join(caDir, gen.CR.CAName+generator.KeyExt)
 
 	key := "gost2012_256"
 	switch gen.CR.KeyType {

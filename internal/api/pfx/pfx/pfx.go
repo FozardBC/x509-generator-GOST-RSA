@@ -87,7 +87,7 @@ func New(log *slog.Logger, RsaCreator pfx.Creator, GostCreator pfx.Creator) gin.
 
 		// 6. Отправка файла
 		c.Header("Content-Type", "application/x-pkcs12")
-		c.Header("Content-Disposition", `attachment; filename="certificate.pfx"`)
+		c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.pfx"`, certFile.Filename))
 		c.Data(http.StatusOK, "application/x-pkcs12", pfxData)
 	}
 }

@@ -6,11 +6,12 @@ import (
 	"html-cer-gen/internal/api/ca/upload"
 	"html-cer-gen/internal/api/cert"
 	"html-cer-gen/internal/api/cert/generate"
-	"html-cer-gen/internal/api/cert/pfx.go"
 	sberGenerator "html-cer-gen/internal/api/cert/sber/generate"
 	"html-cer-gen/internal/api/home"
 	"html-cer-gen/internal/api/home/sber"
 	"html-cer-gen/internal/api/middlewares/requestid"
+	"html-cer-gen/internal/api/pfx/pfx"
+	pfxrequest "html-cer-gen/internal/api/pfx/pfxRequest"
 	"html-cer-gen/internal/lib/api/log"
 	"html-cer-gen/internal/services/generator/gost"
 	certgen "html-cer-gen/internal/services/generator/rsa"
@@ -18,6 +19,8 @@ import (
 	rsaPFX "html-cer-gen/internal/services/pfx/rsa"
 	sberRsaGen "html-cer-gen/internal/services/sberGen/generate/rsa"
 	"log/slog"
+
+	"github.com/thinkerou/favicon"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,6 +54,7 @@ func (api *API) Setup() {
 
 	api.Router.Use(requestid.RequestIdMidlleware())
 	api.Router.Use(gin.LoggerWithFormatter(log.Logging))
+	api.Router.Use(favicon.New("./static/favicon.ico"))
 
 	api.Router.GET("/", home.New(api.Log))
 	api.Router.GET("/sber", sber.New(api.Log))
@@ -59,12 +63,13 @@ func (api *API) Setup() {
 	api.Router.POST("/sber/generate", sberGenerator.New(api.Log, api.sberGen))
 
 	api.Router.GET("/download/:reqid", cert.New(api.Log))
-	api.Router.GET("/download/ca/:name", caDownload.New(api.Log))
+	api.Router.GET("/ca/download/:caName", caDownload.New(api.Log))
 
 	api.Router.GET("/update/ca", update.New(api.Log))
 	api.Router.POST("/upload/ca", upload.New(api.Log))
 
-	api.Router.POST("/pfx", pfx.New(api.Log, api.pfxGenRSA, api.pfxGenGOST))
+	api.Router.POST("/pfx", pfx.New(api.Log, api.pfxGenRSA, api.pfxGenGOST)) // ПОМЕНЯТЬ НА GET
+	api.Router.GET("/pfx/:reqid", pfxrequest.New(api.Log, api.pfxGenRSA, api.pfxGenGOST))
 
 	// v1.POST("/products", add.New(api.Log, api.Storage, api.Imager))
 	// v1.DELETE("/products/:id", delHandler.New(api.Log, api.Storage, api.Imager))

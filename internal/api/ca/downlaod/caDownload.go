@@ -18,18 +18,18 @@ func New(log *slog.Logger) gin.HandlerFunc {
 
 		log.Debug("INFO", "body", c.Request.Body)
 
-		name := c.Param("name")
+		name := c.Param("caName")
 		if name == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "параметр cn обязателен"})
 			return
 		}
 
-		name = filepath.Join(name, name) + ".cer"
+		namePath := filepath.Join(name, name) + ".cer"
 
-		logHandler := log.With("requestid", name)
+		logHandler := log.With("requestid", namePath)
 
 		// Полный путь к файлу
-		filePath := filepath.Join(CAfolder, name)
+		filePath := filepath.Join(CAfolder, namePath)
 
 		// Проверяем существование файла
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -50,7 +50,7 @@ func New(log *slog.Logger) gin.HandlerFunc {
 
 		// Устанавливаем заголовки для скачивания
 		c.Header("Content-Type", "application/x-pem-file")
-		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", name))
+		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.cer\"", name))
 		c.Header("Content-Length", fmt.Sprintf("%d", len(fileData)))
 
 		c.Data(http.StatusOK, "application/x-pem-file", fileData)

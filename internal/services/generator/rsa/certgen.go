@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"html-cer-gen/internal/models"
+	"html-cer-gen/internal/services/generator"
 	"log/slog"
 	"math/big"
 	"net"
@@ -67,8 +68,8 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRe
 
 	filepath.Join()
 
-	caCertFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + ".cer"
-	caKeyFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + ".key"
+	caCertFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + generator.CertExt
+	caKeyFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + generator.KeyExt
 
 	// === 1. Загрузка сертификата УЦ ===
 	caCertData, err := os.ReadFile(caCertFile)
@@ -246,8 +247,8 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRe
 	}
 
 	// === 6. Сохранение файлов ===
-	keyFile := filepath.Join(RequestFolder, gen.CR.CommonName) + ".key"
-	certFile := filepath.Join(RequestFolder, gen.CR.CommonName) + ".crt"
+	keyFile := filepath.Join(RequestFolder, gen.CR.CommonName) + generator.KeyExt
+	certFile := filepath.Join(RequestFolder, gen.CR.CommonName) + generator.CertExt
 
 	// keyFile = uniqueFilePath(OutputFolder, keyFile)
 	// certFile = uniqueFilePath(OutputFolder, certFile)
@@ -263,7 +264,7 @@ func (gen *RSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.CertRe
 }
 
 func UniqueFilePath(dir, filename string) string {
-	base := filepath.Join(dir, filename) + ".crt"
+	base := filepath.Join(dir, filename) + generator.CertExt
 	if _, err := os.Stat(base); os.IsNotExist(err) {
 		return filename // файл не существует — можно использовать как есть
 	}
@@ -275,7 +276,7 @@ func UniqueFilePath(dir, filename string) string {
 	counter := 1
 	for {
 		newName := fmt.Sprintf("%s_%d%s", nameWithoutExt, counter, ext)
-		newPath := filepath.Join(dir, newName) + ".crt"
+		newPath := filepath.Join(dir, newName) + generator.CertExt
 		if _, err := os.Stat(newPath); os.IsNotExist(err) {
 			return newName // нашли свободное имя
 		}

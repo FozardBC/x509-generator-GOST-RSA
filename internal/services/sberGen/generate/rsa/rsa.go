@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"html-cer-gen/internal/models"
+	"html-cer-gen/internal/services/generator"
 	"log/slog"
 	"math/big"
 	"net"
@@ -75,10 +76,9 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 
 	filepath.Join()
 
-	caCertFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + ".cer"
-	caKeyFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + ".key"
+	caCertFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + generator.CertExt
+	caKeyFile := filepath.Join(CAfolder, gen.CR.CAName, gen.CR.CAName) + generator.KeyExt
 
-	// === 1. Загрузка сертификата УЦ ===
 	caCertData, err := os.ReadFile(caCertFile)
 	if err != nil {
 		return fmt.Errorf("не удалось прочитать %s: %w", caCertFile, err)
@@ -88,14 +88,13 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 	if block, rest := pem.Decode(caCertData); block != nil && len(rest) == 0 {
 		caCert, err = x509.ParseCertificate(block.Bytes)
 	} else {
-		// Предполагаем DER
+
 		caCert, err = x509.ParseCertificate(caCertData)
 	}
 	if err != nil {
 		return fmt.Errorf("ошибка разбора сертификата УЦ из %s: %w", caCertFile, err)
 	}
 
-	// === 2. Загрузка приватного ключа УЦ ===
 	caKeyData, err := os.ReadFile(caKeyFile)
 	if err != nil {
 		return fmt.Errorf("не удалось прочитать %s: %w", caKeyFile, err)
@@ -120,7 +119,7 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 		return fmt.Errorf("поддерживаются только RSA-ключи УЦ, получен тип: %T", caPrivateKey)
 	}
 
-	// === 3. Генерация нового ключа ===
+	// Генерация нового ключа
 	keySize := 2048
 	if gen.CR.KeyType == "rsa4096" {
 		keySize = 4096
@@ -160,7 +159,7 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 
 	var SERIALID *big.Int
 
-	// === 4. Создание шаблона сертификата ===
+	// серийник
 	if gen.CR.Serial != 0 {
 		bigInt := new(big.Int)
 		SERIALID = bigInt.SetInt64(int64(gen.CR.Serial))
@@ -171,44 +170,101 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 		}
 	}
 	var oidEmailAddress = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 1}
-	//
-	var extraNames []pkix.AttributeTypeAndValue
+
+	var rdns pkix.RDNSequence
+
+	// CommonName (CN)
+	if gen.CR.CommonName != "" {
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+			Type:  oidCommonName,
+			Value: gen.CR.CommonName,
+		}})
+	}
+
+	// Country (C)
+	if gen.CR.Country != "" {
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+			Type:  oidCountry,
+			Value: strings.ToUpper(gen.CR.Country),
+		}})
+	}
+
+	// Province (ST)
+	if gen.CR.Province != "" {
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+			Type:  oidProvince,
+			Value: gen.CR.Province,
+		}})
+	}
+
+	// Locality (L)
+	if gen.CR.Locality != "" {
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+			Type:  oidLocality,
+			Value: gen.CR.Locality,
+		}})
+	}
+
+	// Organization (O)
+	if gen.CR.Organization != "" {
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+			Type:  oidOrganization,
+			Value: gen.CR.Organization,
+		}})
+	}
+
+	// OrganizationalUnit (OU)
+	for _, ou := range []string{
+		gen.CR.OrganizationUnit,
+		gen.CR.OrganizationUnit2,
+		gen.CR.OrganizationUnit3,
+		gen.CR.OrganizationUnit4,
+	} {
+		if ou != "" {
+			rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+				Type: oidOrganizationalUnit,
+				Value: asn1.RawValue{
+					Tag:   asn1.TagIA5String,
+					Bytes: []byte(ou),
+				},
+			}})
+		}
+	}
+
+	// DomainComponent (DC) — строго IA5String
+	dcs := []string{gen.CR.DomainComponent3, gen.CR.DomainComponent2, gen.CR.DomainComponent}
+	for _, dc := range dcs {
+		if dc != "" {
+			rdns = append(rdns, []pkix.AttributeTypeAndValue{{
+				Type: oidDomainComponent,
+				Value: asn1.RawValue{
+					Tag:   asn1.TagIA5String,
+					Bytes: []byte(dc),
+				},
+			}})
+		}
+	}
+
+	// EmailAddress — строго IA5String
 	if gen.CR.Email != "" {
-		extraNames = append(extraNames, pkix.AttributeTypeAndValue{
+		rdns = append(rdns, []pkix.AttributeTypeAndValue{{
 			Type: oidEmailAddress,
 			Value: asn1.RawValue{
 				Tag:   asn1.TagIA5String,
 				Bytes: []byte(gen.CR.Email),
 			},
-		})
+		}})
 	}
-	dcs := []string{
-		gen.CR.DomainComponent,
-		gen.CR.DomainComponent2,
-		gen.CR.DomainComponent3,
-	}
-	for _, dc := range dcs {
-		if dc != "" {
-			extraNames = append(extraNames, pkix.AttributeTypeAndValue{
-				Type:  oidDomainComponent,
-				Value: dc,
-			})
-		}
+
+	// Теперь сериализуем RDN в DER
+	rawSubject, err := asn1.Marshal(rdns)
+	if err != nil {
+		return fmt.Errorf("ошибка кодирования Subject DN: %w", err)
 	}
 
 	template := x509.Certificate{
-		SerialNumber: SERIALID,
-		Subject: pkix.Name{
-			CommonName: gen.CR.CommonName,
-			Country:    []string{strings.ToUpper(gen.CR.Country)},
-			Province:   []string{gen.CR.Province}, //
-			Locality:   []string{gen.CR.Locality},
-
-			Organization:       []string{gen.CR.Organization},
-			OrganizationalUnit: []string{gen.CR.OrganizationUnit, gen.CR.OrganizationUnit2, gen.CR.OrganizationUnit3, gen.CR.OrganizationUnit4}, //
-
-			ExtraNames: extraNames,
-		},
+		SerialNumber:          SERIALID,
+		RawSubject:            rawSubject,
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
@@ -262,18 +318,15 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 		template.ExtraExtensions = append(template.ExtraExtensions, ex)
 	}
 
-	// === 5. Подпись сертификата ===
+	//Подпись сертификата
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, caCert, &newPrivateKey.PublicKey, rsaCAKey)
 	if err != nil {
 		return fmt.Errorf("ошибка подписания сертификата: %w", err)
 	}
 
-	// === 6. Сохранение файлов ===
-	keyFile := filepath.Join(RequestFolder, gen.CR.CommonName) + ".key"
-	certFile := filepath.Join(RequestFolder, gen.CR.CommonName) + ".crt"
-
-	// keyFile = uniqueFilePath(OutputFolder, keyFile)
-	// certFile = uniqueFilePath(OutputFolder, certFile)
+	// Сохранение файлов
+	keyFile := filepath.Join(RequestFolder, gen.CR.CommonName) + generator.KeyExt
+	certFile := filepath.Join(RequestFolder, gen.CR.CommonName) + generator.CertExt
 
 	if err := savePEMKey(keyFile, newPrivateKey); err != nil {
 		return fmt.Errorf("ошибка записи ключа в %s: %w", keyFile, err)
@@ -286,21 +339,20 @@ func (gen *SberRSACertificateGenerator) GenCertAndTrustCA(CertRequest *models.Sb
 }
 
 func UniqueFilePath(dir, filename string) string {
-	base := filepath.Join(dir, filename) + ".crt"
+	base := filepath.Join(dir, filename) + generator.CertExt
 	if _, err := os.Stat(base); os.IsNotExist(err) {
 		return filename // файл не существует — можно использовать как есть
 	}
 
-	// Разделяем имя файла на имя и расширение
 	ext := filepath.Ext(filename)
 	nameWithoutExt := strings.TrimSuffix(filename, ext)
 
 	counter := 1
 	for {
 		newName := fmt.Sprintf("%s_%d%s", nameWithoutExt, counter, ext)
-		newPath := filepath.Join(dir, newName) + ".crt"
+		newPath := filepath.Join(dir, newName) + generator.CertExt
 		if _, err := os.Stat(newPath); os.IsNotExist(err) {
-			return newName // нашли свободное имя
+			return newName
 		}
 		counter++
 	}

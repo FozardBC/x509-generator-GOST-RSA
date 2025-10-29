@@ -9,6 +9,19 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        button, .btn {
+            width: 100%;
+            padding: 14px;
+            background-color: #27884e;
+            color: white;
+            border: none;
+            border-radius: var(--ios-radius);
+            font-size: 17px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.2s, transform 0.1s;
+        }
         #spinner {
             display: none;
             position: fixed;
@@ -153,9 +166,10 @@
 <body>
     <div class="main-container">
         <!-- Форма генерации -->
-        <div class="container">
-            <div class="signature">
-                <img src="/static/logo.png" alt="Электронная подпись" style="margin-bottom: 20px; margin-left: 40px;">
+        <div class="container" >
+            <div class="signature" style="display: flex; align-items: center;">
+                <img src="/static/logo.png" alt="Электронная подпись" style="margin-bottom: 20px;">
+                <img src="/static/sber_logo.png" style="margin-bottom: 20px;  max-width: 100px; max-height: 100px;">
             </div>
             <form action="/sber/generate" method="post">
                 <div class="form-group">
@@ -165,38 +179,43 @@
                 <div class="form-group">
                     <label for="organization" title="Организация">Organization:</label>
                     <input type="text" id="organization" name="organization" value="Amicon">
-                    
-                </div>
-                <div class="form-group">
-                    <label for="organizationUnit" title="Подразделение">Organization Unit:</label>
-                    <input type="text" id="organizationUnit" name="organizationUnit" value="Test">
-                </div>
-                <div class="form-group">
-                    <label for="organizationUnit" title="Подразделение">Organization Unit2:</label>
-                    <input type="text" id="organizationUnit2" name="organizationUnit2" value="Test">
-                </div>
-                <div class="form-group">
-                    <label for="organizationUnit" title="Подразделение">Organization Unit2:</label>
-                    <input type="text" id="organizationUnit3" name="organizationUnit3" value="Test">
-                </div>
-                <div class="form-group">
-                    <label for="organizationUnit" title="Подразделение">Organization Unit4:</label>
-                    <input type="text" id="organizationUnit4" name="organizationUnit4" value="Test">
-                </div>
-
-                <div class="form-group">
-                    <label for="Domain Component" title="Компонент Домена">Domain Component:</label>
-                    <input type="text" id="domainComponent" name="domainComponent" value="Test">
-                </div>
-                <div class="form-group">
-                    <label for="Domain Component" title="Компонент Домена">Domain Component2:</label>
-                    <input type="text" id="domainComponent2" name="domainComponent2" value="Test">
-                </div>
-                <div class="form-group">
-                    <label for="Domain Component" title="Компонент Домена">Domain Component3:</label>
-                    <input type="text" id="domainComponent3" name="domainComponent3" value="Test">
-                </div>
                 
+                <div id="ouFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="organizationUnit" title="Подразделение">Organization Unit:</label>
+                        <input type="text" id="organizationUnit" name="organizationUnit" value="Test">
+                    </div>
+                    <div class="form-group">
+                        <label for="organizationUnit" title="Подразделение">Organization Unit 2:</label>
+                        <input type="text" id="organizationUnit2" name="organizationUnit2" value="Test">
+                    </div>
+                    <div class="form-group">
+                        <label for="organizationUnit" title="Подразделение">Organization Unit 3:</label>
+                        <input type="text" id="organizationUnit3" name="organizationUnit3" value="Test">
+                    </div>
+                    <div class="form-group">
+                        <label for="organizationUnit" title="Подразделение">Organization Unit 4:</label>
+                        <input type="text" id="organizationUnit4" name="organizationUnit4" value="Test">
+                    </div>
+                    </div>
+                </div>
+                <button type="button" id="toggleOU">Показать подразделения</button>
+
+                <div id="dcFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="Domain Component" title="Компонент Домена">Domain Component:</label>
+                        <input type="text" id="domainComponent" name="domainComponent" value="Test">
+                    </div>
+                    <div class="form-group">
+                        <label for="Domain Component" title="Компонент Домена">Domain Component 2:</label>
+                        <input type="text" id="domainComponent2" name="domainComponent2" value="Test">
+                    </div>
+                    <div class="form-group">
+                        <label for="Domain Component" title="Компонент Домена">Domain Component 3:</label>
+                        <input type="text" id="domainComponent3" name="domainComponent3" value="Test">
+                    </div>
+                </div>
+                <button type="button" id="toggleDC">Показать компоненты домена</button>
                 <div class="form-group">
                     <label for="country" title="Страна">Country:</label>
                     <input type="text" id="country" name="country" value="RU" maxlength="2">
@@ -236,11 +255,11 @@
                     <select id="keyType" name="keyType">
                         <option value="rsa2048">RSA 2048</option>
                         <option value="rsa4096">RSA 4096</option>
-                        <option value="GOST2012256">GOST2012(256)</option>
-                        <option value="GOST2012512">GOST2012(512)</option>
+                        <!-- <option value="GOST2012256">GOST2012(256)</option>
+                        <option value="GOST2012512">GOST2012(512)</option> -->
                     </select>
                     <small class="form-text text-muted" style="color: #e74c3c; text-align: center; font-weight: bold; font-size: 0.875em; margin-top: 4px; display: block;">
-                        ⚠️ В связи с особенностями openssl gost engine - тип ключа RSA не поддерживает подпись ГОСТовым УЦ, и наоборот.
+                        ⚠️ В связи с особенностями openssl gost engine - нет вомзожности создать ГОСТ сертификат по параметрам Сбера. Возможно появится позднее
                     </small>
                 </div>
                 <div class="form-group">
@@ -279,12 +298,12 @@
                     <div class="form-group">
                         <label for="crlDistributionPoints" title="Точка распространения списка отзыва">CRL Distribution Points:</label>
                         <input type="text" id="crlDistributionPoints" name="crlDistributionPoints" value=" ">
-                        <div class="help-text">Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
+                        <div class="help-text"><b>Точка распространения списка отзыва</b><br>Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
                     </div>
                     <div class="form-group">
                         <label for="authorityInfoAccess" title="Доступ к сведениям центра сертификации">Authority Info Access:</label>
                         <input type="text" id="authorityInfoAccess" name="authorityInfoAccess" value=" ">
-                        <div class="help-text">Пример: OCSP;http://192.168.28.4,CAIssuers;http://192.168.28.2<br>Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
+                        <div class="help-text"><b>Доступ к сведениям центра сертификации</b><br>Пример: OCSP;http://192.168.28.4,CAIssuers;http://192.168.28.2<br>Если нужно несколько - вводить через запятую БЕЗ ПРОБЕЛОВ</div>
                     </div>
                     <div class="form-group">
                         <label for="serial">Serial Number:</label>
@@ -309,7 +328,7 @@
         <div class="containerDOWNLOAD">
                 <h2>Скачать сертификаты УЦ</h2>
 
-                <div class="form-group">
+               <div class="form-group">
                     <label for="downloadCaName">Удостоверяющий центр:</label>
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <select class="select" id="downloadCaName" name="caName">
@@ -320,10 +339,7 @@
                 </div>
 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <form id="downloadForm" action="/download/cert" method="get" style="display: inline;">
-                        <input type="hidden" id="downloadFormCaInput" name="caName">
-                        <button type="submit" class="button" style="margin-bottom: 0;">Скачать</button>
-                    </form>
+                    <button type="button" id="downloadCaBtn">Скачать</button>
                     
                     <!-- Кнопка открытия модального окна -->
                     <button type="button" id="openUploadModal" class="button" style="background: #6d39e7; margin-bottom: 0;">Загрузить УЦ</button>
@@ -427,6 +443,36 @@
     <!-- Спиннер -->
     <div id="spinner"><div></div></div>
 
+
+<script>
+document.getElementById('toggleOU').addEventListener('click', function() {
+    const ouFields = document.getElementById('ouFields');
+    const isHidden = ouFields.style.display === 'none';
+    
+    if (isHidden) {
+        ouFields.style.display = 'block';
+        this.textContent = 'Скрыть подразделения';
+    } else {
+        ouFields.style.display = 'none';
+        this.textContent = 'Показать подразделения';
+    }
+});
+</script>
+
+<script>
+document.getElementById('toggleDC').addEventListener('click', function() {
+    const ouFields = document.getElementById('dcFields');
+    const isHidden = ouFields.style.display === 'none';
+    
+    if (isHidden) {
+        ouFields.style.display = 'block';
+        this.textContent = 'Скрыть компоненты домена';
+    } else {
+        ouFields.style.display = 'none';
+        this.textContent = 'Показать компоненты домен';
+    }
+});
+</script>
 
 
 <script>
@@ -800,9 +846,15 @@ pfxForm.addEventListener('submit', async e => {
         });
 
         // ========== Обновление форм скачивания ==========
-        document.getElementById('downloadCaName').addEventListener('change', function () {
-            document.getElementById('downloadFormCaInput').value = this.value;
-        });
+            document.getElementById('downloadCaBtn').addEventListener('click', function() {
+    const caName = document.getElementById('downloadCaName').value;
+    if (!caName) {
+        alert('Пожалуйста, выберите удостоверяющий центр.');
+        return;
+    }
+    const encodedCaName = encodeURIComponent(caName);
+    window.location.href = `/ca/download/${encodedCaName}`;
+});
 
         // ========== Ограничение liveTime для ГОСТ ==========
         document.addEventListener('DOMContentLoaded', () => {
