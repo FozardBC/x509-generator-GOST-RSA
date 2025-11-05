@@ -24,8 +24,6 @@ func New(log *slog.Logger, RsaGenerator *rsa.SberRSACertificateGenerator) gin.Ha
 			slog.String("requestID", requestid.Get(c)),
 		)
 
-		log.Debug("INFO", "body", c.Request.Body)
-
 		var Req *models.SberCertRequest
 
 		if err := c.ShouldBind(&Req); err != nil {
