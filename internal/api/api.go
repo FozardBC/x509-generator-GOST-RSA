@@ -7,12 +7,13 @@ import (
 	"html-cer-gen/internal/api/cert"
 	"html-cer-gen/internal/api/cert/generate"
 	sberGenerator "html-cer-gen/internal/api/cert/sber/generate"
+	"html-cer-gen/internal/api/csr"
 	"html-cer-gen/internal/api/home"
 	"html-cer-gen/internal/api/home/sber"
+	reqlog "html-cer-gen/internal/api/middlewares/req-log"
 	"html-cer-gen/internal/api/middlewares/requestid"
 	"html-cer-gen/internal/api/pfx/pfx"
 	pfxrequest "html-cer-gen/internal/api/pfx/pfxRequest"
-	"html-cer-gen/internal/lib/api/log"
 	"html-cer-gen/internal/services/generator/gost"
 	certgen "html-cer-gen/internal/services/generator/rsa"
 	gostPGX "html-cer-gen/internal/services/pfx/gost"
@@ -53,7 +54,7 @@ func (api *API) Setup() {
 	api.Router.Static("/static", "./static")
 
 	api.Router.Use(requestid.RequestIdMidlleware())
-	api.Router.Use(gin.LoggerWithFormatter(log.Logging))
+	api.Router.Use(reqlog.RequestIdMidlleware(api.Log))
 	api.Router.Use(favicon.New("./static/favicon.ico"))
 
 	api.Router.GET("/", home.New(api.Log))
@@ -70,6 +71,8 @@ func (api *API) Setup() {
 
 	api.Router.POST("/pfx", pfx.New(api.Log, api.pfxGenRSA, api.pfxGenGOST)) // ПОМЕНЯТЬ НА GET
 	api.Router.GET("/pfx/:reqid", pfxrequest.New(api.Log, api.pfxGenRSA, api.pfxGenGOST))
+
+	api.Router.GET("/csr", csr.New(api.Log))
 
 	// v1.POST("/products", add.New(api.Log, api.Storage, api.Imager))
 	// v1.DELETE("/products/:id", delHandler.New(api.Log, api.Storage, api.Imager))

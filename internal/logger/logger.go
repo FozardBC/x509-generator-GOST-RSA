@@ -16,6 +16,7 @@ var fileLogWriter *lumberjack.Logger
 const (
 	LevelDebug = "debug"
 	LevelDev   = "dev"
+	LevelInfo  = "info"
 )
 
 func New(level string) *slog.Logger {
@@ -44,7 +45,13 @@ func New(level string) *slog.Logger {
 			Level:     slog.LevelInfo,
 			AddSource: true,
 		}))
+	case LevelInfo:
+		log = slog.New(slog.NewJSONHandler(multiWriter, &slog.HandlerOptions{
+			Level:     slog.LevelInfo,
+			AddSource: false,
+		}))
 	}
+
 	return log
 }
 

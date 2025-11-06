@@ -1,32 +1,43 @@
 package csr
 
-// func New(log *slog.Logger) gin.HandlerFunc {
-// 	return func(c *gin.Context) {
+import (
+	"log/slog"
+	"net/http"
 
-// 		reqID := requestid.Get(c)
+	"github.com/gin-gonic/gin"
+)
 
-// 		logHandler := log.With(
-// 			slog.String("requestID", requestid.Get(c)),
-// 		)
+var htmlFile = "csr.html"
 
-// 		selectedCa := c.Query("caName")
-// 		if selectedCa == "" {
-// 			selectedCa = "_"
-// 		}
+func New(log *slog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-// 		certFile, certFileHeader, err := c.Request.FormFile("csrFile")
-// 		if err != nil {
-// 			logHandler.Error(err.Error())
+		c.HTML(http.StatusOK, htmlFile, nil)
 
-// 			c.JSON(http.StatusBadRequest, gin.H{
-// 				"error": "Не удалось получить файл сертификата." + err.Error(),
-// 			})
-// 			return
-// 		}
-// 		defer certFile.Close()
+		// reqID := requestid.Get(c)
 
-// 		// принимаем файл csr
-// 		// принимаем Выбранный УЦ
-// 		// отдаем .key .cer
-// 	}
-// }
+		// logHandler := log.With(
+		// 	slog.String("requestID", requestid.Get(c)),
+		// )
+
+		// selectedCa := c.Query("caName")
+		// if selectedCa == "" {
+		// 	selectedCa = "_"
+		// }
+
+		// certFile, certFileHeader, err := c.Request.FormFile("csrFile")
+		// if err != nil {
+		// 	logHandler.Error(err.Error())
+
+		// 	c.JSON(http.StatusBadRequest, gin.H{
+		// 		"error": "Не удалось получить файл сертификата." + err.Error(),
+		// 	})
+		// 	return
+		// }
+		// defer certFile.Close()
+
+		// принимаем файл csr
+		// принимаем Выбранный УЦ
+		// отдаем .key .cer
+	}
+}
